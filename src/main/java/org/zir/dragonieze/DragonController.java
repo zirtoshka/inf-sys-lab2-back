@@ -14,29 +14,29 @@ import org.zir.dragonieze.dragon.repo.DragonRepository;
 import java.time.LocalDate;
 
 @RestController
-@RequestMapping("/dragon-controller")
+@RequestMapping("/dragon")
 @CrossOrigin(origins = "*")
 @RequiredArgsConstructor
 public class DragonController {
     private final DragonRepository dragonRepository;
     private final CoordinatesRepository coordinatesRepository;
 
-    @GetMapping
+    @GetMapping("/hello")
     public ResponseEntity<String> sayHello() {
         final HttpHeaders httpHeaders = new HttpHeaders();
         System.out.println("it's method sayHello");
 
-        Dragon dragon = new Dragon();
-        dragon.setName("dragon");
-
-        Coordinates coordinates= new Coordinates();
-//        coordinates.setDragon(dragon);
-        coordinates.setX(4d);
-        coordinates.setY(2f);
-        dragon.setCoordinates(coordinates);
-        dragon.setCreationDate(LocalDate.now());
-
-        dragonRepository.save(dragon);
+//        Dragon dragon = new Dragon();
+//        dragon.setName("dragon");
+//
+//        Coordinates coordinates= new Coordinates();
+////        coordinates.setDragon(dragon);
+//        coordinates.setX(4d);
+//        coordinates.setY(2f);
+//        dragon.setCoordinates(coordinates);
+//        dragon.setCreationDate(LocalDate.now());
+//
+//        dragonRepository.save(dragon);
 
         return new ResponseEntity<>("{\"message\": \"Hello from secured endpoint\"}", httpHeaders, HttpStatus.OK);
     }
@@ -58,7 +58,7 @@ public class DragonController {
     }
 
     @PostMapping("/dragons")
-    ResponseEntity<String> addDragon(@Valid @RequestBody Dragon drgon) {
+    ResponseEntity<String> addDragon(@Valid @RequestBody Dragon dragon) {
         // persisting the dragon
         return ResponseEntity.ok("Dragon is valid");
     }

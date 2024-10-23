@@ -11,7 +11,7 @@ public class DragonHead {
     private double eyesCount;
 
 
-    @ManyToOne(optional = false) // хотя бы одна у дракона
+    @ManyToOne(cascade = CascadeType.ALL,optional = false) // хотя бы одна у дракона
     @JoinColumn(name = "dragon_id", nullable = false)
     private Dragon dragon;
 

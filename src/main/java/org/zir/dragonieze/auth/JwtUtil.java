@@ -10,12 +10,13 @@ import org.jose4j.jwt.consumer.JwtConsumerBuilder;
 import org.jose4j.keys.HmacKey;
 import org.jose4j.lang.JoseException;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.stereotype.Component;
 
 import java.security.Key;
 import java.util.HashMap;
 import java.util.Map;
 
-
+@Component
 public class JwtUtil {
     private static final String SECRET = "dragonieze0914a072a1dd67d2bcea47d5764a5653deeb39880c6d08d3bbd8ced116d63be8";
 

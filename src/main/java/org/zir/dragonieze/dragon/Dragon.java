@@ -31,11 +31,11 @@ public class Dragon {
 
 
     @NotNull
-    @ManyToOne(optional = false) // Много драконов могут относиться к одной пещере
+    @ManyToOne(cascade = CascadeType.ALL,optional = false) // Много драконов могут относиться к одной пещере
     @JoinColumn(name = "cave_id", nullable = false, unique = true) // один дракон только в одной пещере
     private DragonCave cave; // не null
 
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "killer_id", nullable = true)
     private Person killer; // может быть null
 
