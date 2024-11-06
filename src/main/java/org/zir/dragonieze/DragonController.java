@@ -14,7 +14,7 @@ import org.zir.dragonieze.dragon.repo.DragonRepository;
 import java.time.LocalDate;
 
 @RestController
-@RequestMapping("/dragon")
+@RequestMapping("/dragon/user")
 @CrossOrigin(origins = "*")
 @RequiredArgsConstructor
 public class DragonController {
@@ -57,11 +57,19 @@ public class DragonController {
         return new ResponseEntity<>("{\"message\": \"blbla\"}", httpHeaders, HttpStatus.OK);
     }
 
+    @GetMapping("/getDragons")
+    public ResponseEntity<String> getDragons() {
+        final HttpHeaders httpHeaders = new HttpHeaders();
+        System.out.println("it's method getDragons");
+        return new ResponseEntity<>("{\"message\": \"blbla\"}", httpHeaders, HttpStatus.OK);
+    }
+
     @PostMapping("/dragons")
     ResponseEntity<String> addDragon(@Valid @RequestBody Dragon dragon) {
         // persisting the dragon
         return ResponseEntity.ok("Dragon is valid");
     }
+
 
 
 }

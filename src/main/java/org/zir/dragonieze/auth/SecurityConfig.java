@@ -3,6 +3,7 @@ package org.zir.dragonieze.auth;
 import lombok.AllArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
@@ -23,26 +24,20 @@ public class SecurityConfig {
     private final UserDetailsService userDetailsService;
 
 
-
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http
-                .csrf().disable() // Предупреждение об устаревании можно оставить, если CSRF не нужен
-                .authorizeHttpRequests(authorize -> authorize
-                        .requestMatchers("/dragon/hello").permitAll()
-                        .requestMatchers("/dragon/auth/authenticate").permitAll()
-                        .requestMatchers("/dragon/auth/register").permitAll()
-                        .requestMatchers("/admin/**").hasRole("ADMIN")
-                        .requestMatchers("/user/**").hasRole("USER")
+        return http
+                .csrf(csrf -> csrf.ignoringRequestMatchers("/dragon/**"))
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/dragon/auth/**").permitAll()
+                        .requestMatchers(HttpMethod.POST, "/dragon/user/*").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/dragons/**").hasRole("USER")
+                        .requestMatchers("/dragon/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 )
-                .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-                );
-
-        http.addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
-
-        return http.build();
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .build();
     }
 
     @Bean

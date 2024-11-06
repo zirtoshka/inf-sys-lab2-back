@@ -38,8 +38,7 @@ public class JwtUtil {
         jwtClaims.setSubject(userDetails.getUsername());
         jwtClaims.setIssuedAtToNow();
         jwtClaims.setExpirationTimeMinutesInTheFuture(60); // токен активен 1 час
-        jwtClaims.setIssuer("https://draconieza.com");
-        extraClaims.forEach(jwtClaims::setClaim);
+        jwtClaims.setClaim("role", userDetails.getAuthorities().toString());
 
         JsonWebSignature jws = new JsonWebSignature();
         jws.setPayload(jwtClaims.toJson());
@@ -55,14 +54,14 @@ public class JwtUtil {
                 .setAllowedClockSkewInSeconds(30)
                 .setRequireIssuedAt()
                 .setVerificationKey(getKey())
-                .setExpectedIssuer("https://draconieza.com")
-//                .setExpectedSubject(username??)
                 .build();
 
         try {
             return jwtConsumer.processToClaims(token);
         } catch (InvalidJwtException e) {
-           return null;
+            //todo
+            System.out.println("Token validation failed: " + e.getMessage());
+            return null;
         }
     }
 

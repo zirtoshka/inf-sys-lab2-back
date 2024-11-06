@@ -33,20 +33,22 @@ public class JwtAuthFilter extends OncePerRequestFilter {
 
         if (authHeader != null && authHeader.startsWith("Bearer ")) {
             token = authHeader.substring(7);
-            try{
+            try {
                 JwtClaims claims = jwtUtil.validateToken(token);
-                if (claims != null) {throw new Exception("Invalid token");}
-                username=claims.getSubject();
+                if (claims == null) {
+                    throw new Exception("Invalid token");
+                }
+                username = claims.getSubject();
             } catch (Exception e) {
                 e.printStackTrace();
                 //todo norm exc
             }
         }
 
-        if(username != null && username != "" && SecurityContextHolder.getContext().getAuthentication() == null) {
+        if (username != null && username != "" && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = userDetailsService.loadUserByUsername(username);
             try {
-                if (!jwtUtil.isTokenExpired(jwtUtil.validateToken(token))){
+                if (!jwtUtil.isTokenExpired(jwtUtil.validateToken(token))) {
                     UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
                             userDetails, null, userDetails.getAuthorities()
                     );

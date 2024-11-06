@@ -10,10 +10,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.web.server.ResponseStatusException;
 import org.zir.dragonieze.user.Role;
@@ -26,6 +23,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/dragon/auth")
 @AllArgsConstructor
+@CrossOrigin(origins = "*")
 public class AuthController {
 
     private final AuthenticationManager authenticationManager;
@@ -48,6 +46,7 @@ public class AuthController {
     }
 
 
+
     @Transactional
     @PostMapping("/register")
     public AuthResponse register(
@@ -56,6 +55,7 @@ public class AuthController {
         if (userRepository.findByUsername(request.getUsername()).isPresent()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Username is already in use");
         }
+        System.out.println(request.getUsername());
         var user = User.builder()
                 .username(request.getUsername())
                 .password(passwordEncoder.encode(request.getPassword()))
