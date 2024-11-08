@@ -39,7 +39,6 @@ public class Dragon {
     @JoinColumn(name = "killer_id", nullable = true)
     private Person killer; // может быть null
 
-    @NotNull
     @Positive
     private Integer age; // больше 0,  может быть null
     @Positive
