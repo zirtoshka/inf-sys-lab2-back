@@ -1,48 +1,41 @@
 package org.zir.dragonieze;
 
+
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.validation.FieldError;
-import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 import org.zir.dragonieze.auth.JwtUtil;
+import org.zir.dragonieze.dragon.Coordinates;
 import org.zir.dragonieze.dragon.Dragon;
 import org.zir.dragonieze.dragon.repo.CoordinatesRepository;
 import org.zir.dragonieze.dragon.repo.DragonRepository;
-import org.zir.dragonieze.user.UserRepository;
+import org.zir.dragonieze.dto.CoordinatesDTO;
 import org.zir.dragonieze.user.User;
-
+import org.zir.dragonieze.user.UserRepository;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @RestController
-@RequestMapping("/dragon/user/dr")
+@RequestMapping("/dragon/user/coord")
 @CrossOrigin(origins = "*")
 @RequiredArgsConstructor
-public class DragonController extends Controller {
-    private final DragonRepository dragonRepository;
+public class CoordinatesController extends Controller {
+    private final CoordinatesRepository coordinatesRepository;
     private final JwtUtil jwtUtil;
     private final UserRepository userRepository;
 
-    @GetMapping("/hello")
-    public ResponseEntity<String> sayHello() {
-        final HttpHeaders httpHeaders = new HttpHeaders();
-        System.out.println("it's method sayHello");
-        return new ResponseEntity<>("{\"message\": \"Hello from secured endpoint\"}", httpHeaders, HttpStatus.OK);
-    }
 
     @Transactional
-    @PostMapping("/addDragon")
-    public ResponseEntity<String> addDragon(
+    @PostMapping("/addCoordinates")
+    public ResponseEntity<String> addCoordinates(
             @RequestHeader(HEADER_AUTH) String header,
-            @Valid @RequestBody Dragon dragon
+            @Valid @RequestBody Coordinates coordinates
     ) throws JsonProcessingException {
         String username = getUsername(header, jwtUtil);
         Optional<User> userOptional = userRepository.findByUsername(username);
@@ -50,16 +43,15 @@ public class DragonController extends Controller {
             return new ResponseEntity<>("User not found", HttpStatus.NOT_FOUND);
         }
         User user = userOptional.get();
-        dragon.setUser(user); // Связываем дракона с пользователем
-
-        Dragon savedDragon = dragonRepository.save(dragon);
-        String json = getJson(savedDragon);
+        coordinates.setUser(user); // Связываем дракона с пользователем
+        coordinatesRepository.save(coordinates);
+        String json = getJson(new CoordinatesDTO(
+                coordinates.getId(), coordinates.getX(), coordinates.getY()));
         return ResponseEntity.ok(json);
     }
 
-
-    @GetMapping("/getDragons")
-    public ResponseEntity<String> getDragons(
+    @GetMapping("/getCoordinates")
+    public ResponseEntity<String> getCoordinates(
             @RequestHeader(HEADER_AUTH) String header
     ) throws JsonProcessingException {
         String username = getUsername(header, jwtUtil);
@@ -69,12 +61,14 @@ public class DragonController extends Controller {
             return new ResponseEntity<>("User not found", HttpStatus.NOT_FOUND);
         }
         User user = userOptional.get();
-        List<Dragon> dragons = dragonRepository.findByUserId(user.getId());
-        String json = getJson(dragons);
-        System.out.println("it's method getDragons");
+        List<Coordinates> coordinates = coordinatesRepository.findByUserId(user.getId());
+        List<CoordinatesDTO> coordinatesDTOs = coordinates.stream()
+                .map(coordinate -> new CoordinatesDTO(
+                        coordinate.getId(), coordinate.getX(), coordinate.getY()))
+                .collect(Collectors.toList());
+        String json = getJson(coordinatesDTOs);
+        System.out.println("it's method getCoordinates");
         return ResponseEntity.ok(json);
     }
 
-
 }
-

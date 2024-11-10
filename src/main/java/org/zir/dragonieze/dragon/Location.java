@@ -23,6 +23,8 @@ public class Location {
     @NotNull
     private Float z; //Поле не может быть null
     @NotNull
-    private String name; //Поле не может быть null
+    private String name;//Поле не может быть null
+    @NotNull
+    private boolean canEdit;
 
 }

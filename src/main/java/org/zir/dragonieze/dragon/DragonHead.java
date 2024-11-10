@@ -1,6 +1,7 @@
 package org.zir.dragonieze.dragon;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 
 @Entity
 public class DragonHead {
@@ -9,6 +10,8 @@ public class DragonHead {
     private long id;
 
     private double eyesCount;
+    @NotNull
+    private boolean canEdit;
 
 
     @ManyToOne(cascade = CascadeType.ALL,optional = false) // хотя бы одна у дракона

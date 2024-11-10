@@ -7,13 +7,14 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.zir.dragonieze.user.User;
 
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
 @Setter
 @Entity
-@Table(name ="dragon")
+@Table(name = "dragon")
 public class Dragon {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -31,8 +32,8 @@ public class Dragon {
 
 
     @NotNull
-    @ManyToOne(cascade = CascadeType.ALL,optional = false) // Много драконов могут относиться к одной пещере
-    @JoinColumn(name = "cave_id", nullable = false, unique = true) // один дракон только в одной пещере
+    @ManyToOne(cascade = CascadeType.ALL, optional = false) // Много драконов могут относиться к одной пещере
+    @JoinColumn(name = "cave_id", nullable = false) // один дракон только в одной пещере
     private DragonCave cave; // не null
 
     @ManyToOne(cascade = CascadeType.ALL)
@@ -47,6 +48,12 @@ public class Dragon {
     private Color color; // не null
     @NotNull
     private DragonCharacter character; // не null
+    @NotNull
+    private boolean canEdit;
+
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
 
 }

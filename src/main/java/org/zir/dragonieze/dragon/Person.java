@@ -38,4 +38,7 @@ public class Person {
     @NotNull
     private Country nationality; //Поле не может быть null
 
+    @NotNull
+    private boolean canEdit;
+
 }

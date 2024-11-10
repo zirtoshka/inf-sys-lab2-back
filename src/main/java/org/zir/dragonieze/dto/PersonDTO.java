@@ -1,0 +1,22 @@
+package org.zir.dragonieze.dto;
+
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.Setter;
+import org.zir.dragonieze.dragon.Color;
+import org.zir.dragonieze.dragon.Country;
+
+@AllArgsConstructor
+@Setter
+@Getter
+public class PersonDTO {
+    private long id;
+    private String name;
+    private Color eyeColor;
+    private Color hairColor;
+    private LocationDTO location;
+    private int height;
+    private String passportID;
+    private Country nationality;
+    private boolean canEdit;
+}
