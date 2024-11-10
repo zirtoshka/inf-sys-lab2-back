@@ -2,17 +2,26 @@ package org.zir.dragonieze;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestController;
 import org.zir.dragonieze.auth.JwtUtil;
+import org.zir.dragonieze.user.UserRepository;
 
 import java.util.HashMap;
 import java.util.Map;
-@RestController
+
+@RequiredArgsConstructor
+@NoArgsConstructor(force = true)
 public class Controller {
+    protected final JwtUtil jwtUtil;
+    protected final UserRepository userRepository;
     protected final String HEADER_AUTH = "Authorization";
 
     String getUsername(String header, JwtUtil jwtUtil) {

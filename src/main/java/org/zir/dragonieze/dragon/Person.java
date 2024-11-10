@@ -8,6 +8,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.zir.dragonieze.user.User;
 
 @Entity
 @NoArgsConstructor
@@ -40,5 +41,9 @@ public class Person {
 
     @NotNull
     private boolean canEdit;
+
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
 }

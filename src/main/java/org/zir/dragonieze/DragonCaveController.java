@@ -1,51 +1,39 @@
 package org.zir.dragonieze;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.validation.FieldError;
-import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 import org.zir.dragonieze.auth.JwtUtil;
-import org.zir.dragonieze.dragon.Dragon;
+import org.zir.dragonieze.dragon.Coordinates;
+import org.zir.dragonieze.dragon.DragonCave;
 import org.zir.dragonieze.dragon.repo.CoordinatesRepository;
-import org.zir.dragonieze.dragon.repo.DragonRepository;
-import org.zir.dragonieze.dto.DragonDTO;
-import org.zir.dragonieze.user.UserRepository;
+import org.zir.dragonieze.dragon.repo.DragonCaveRepository;
+import org.zir.dragonieze.dto.CoordinatesDTO;
+import org.zir.dragonieze.dto.DragonCaveDTO;
 import org.zir.dragonieze.user.User;
+import org.zir.dragonieze.user.UserRepository;
 
-
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RestController
-@RequiredArgsConstructor
+@RequestMapping("/dragon/user/cave")
 @CrossOrigin(origins = "*")
-@RequestMapping("/dragon/user/dr")
-public class DragonController extends Controller {
+@RequiredArgsConstructor
+public class DragonCaveController extends Controller {
+    private final DragonCaveRepository caveRepository;
 
-    private final DragonRepository dragonRepository;
-
-
-    @GetMapping("/hello")
-    public ResponseEntity<String> sayHello() {
-        final HttpHeaders httpHeaders = new HttpHeaders();
-        System.out.println("it's method sayHello");
-        return new ResponseEntity<>("{\"message\": \"Hello from secured endpoint\"}", httpHeaders, HttpStatus.OK);
-    }
 
     @Transactional
-    @PostMapping("/addDragon")
-    public ResponseEntity<String> addDragon(
+    @PostMapping("/addCave")
+    public ResponseEntity<String> addCave(
             @RequestHeader(HEADER_AUTH) String header,
-            @Valid @RequestBody Dragon dragon
+            @Valid @RequestBody DragonCave cave
     ) throws JsonProcessingException {
         String username = getUsername(header, jwtUtil);
         Optional<User> userOptional = userRepository.findByUsername(username);
@@ -53,15 +41,14 @@ public class DragonController extends Controller {
             return new ResponseEntity<>("User not found", HttpStatus.NOT_FOUND);
         }
         User user = userOptional.get();
-        dragon.setUser(user);
-        dragonRepository.save(dragon);
-        String json = getJson(new DragonDTO(dragon));
+        cave.setUser(user);
+        caveRepository.save(cave);
+        String json = getJson(new DragonCaveDTO(cave));
         return ResponseEntity.ok(json);
     }
 
-
-    @GetMapping("/getDragons")
-    public ResponseEntity<String> getDragons(
+    @GetMapping("/getCaves")
+    public ResponseEntity<String> getCaves(
             @RequestHeader(HEADER_AUTH) String header
     ) throws JsonProcessingException {
         String username = getUsername(header, jwtUtil);
@@ -71,15 +58,12 @@ public class DragonController extends Controller {
             return new ResponseEntity<>("User not found", HttpStatus.NOT_FOUND);
         }
         User user = userOptional.get();
-        List<Dragon> dragons = dragonRepository.findByUserId(user.getId());
-        List<DragonDTO> dragonDTOs = dragons.stream()
-                .map(dragon -> new DragonDTO(dragon))
+        List<DragonCave> caves = caveRepository.findByUserId(user.getId());
+        List<DragonCaveDTO> caveDTOS = caves.stream()
+                .map(DragonCaveDTO::new)
                 .collect(Collectors.toList());
-        String json = getJson(dragonDTOs);
-        System.out.println("it's method getDragons");
+        String json = getJson(caveDTOS);
+        System.out.println("it's method getCaves");
         return ResponseEntity.ok(json);
     }
-
-
 }
-

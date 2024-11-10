@@ -6,6 +6,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.zir.dragonieze.user.User;
 
 @Entity
 @Setter
@@ -26,5 +27,9 @@ public class Location {
     private String name;//Поле не может быть null
     @NotNull
     private boolean canEdit;
+
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
 }

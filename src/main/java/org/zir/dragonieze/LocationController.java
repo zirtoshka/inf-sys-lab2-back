@@ -8,14 +8,12 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
-import org.zir.dragonieze.auth.JwtUtil;
 import org.zir.dragonieze.dragon.Coordinates;
-import org.zir.dragonieze.dragon.Dragon;
-import org.zir.dragonieze.dragon.repo.CoordinatesRepository;
-import org.zir.dragonieze.dragon.repo.DragonRepository;
+import org.zir.dragonieze.dragon.Location;
+import org.zir.dragonieze.dragon.repo.LocationRepository;
 import org.zir.dragonieze.dto.CoordinatesDTO;
+import org.zir.dragonieze.dto.LocationDTO;
 import org.zir.dragonieze.user.User;
-import org.zir.dragonieze.user.UserRepository;
 
 import java.util.List;
 import java.util.Optional;
@@ -24,17 +22,15 @@ import java.util.stream.Collectors;
 @RestController
 @RequiredArgsConstructor
 @CrossOrigin(origins = "*")
-@RequestMapping("/dragon/user/coord")
-public class CoordinatesController extends Controller {
-    private final CoordinatesRepository coordinatesRepository;
-
-
+@RequestMapping("/dragon/user/loc")
+public class LocationController extends Controller {
+    private final LocationRepository locationRepository;
 
     @Transactional
-    @PostMapping("/addCoordinates")
-    public ResponseEntity<String> addCoordinates(
+    @PostMapping("/addLocation")
+    public ResponseEntity<String> addLocation(
             @RequestHeader(HEADER_AUTH) String header,
-            @Valid @RequestBody Coordinates coordinates
+            @Valid @RequestBody Location location
     ) throws JsonProcessingException {
         String username = getUsername(header, jwtUtil);
         Optional<User> userOptional = userRepository.findByUsername(username);
@@ -42,14 +38,14 @@ public class CoordinatesController extends Controller {
             return new ResponseEntity<>("User not found", HttpStatus.NOT_FOUND);
         }
         User user = userOptional.get();
-        coordinates.setUser(user);
-        coordinatesRepository.save(coordinates);
-        String json = getJson(new CoordinatesDTO(coordinates));
+        location.setUser(user);
+        locationRepository.save(location);
+        String json = getJson(new LocationDTO(location));
         return ResponseEntity.ok(json);
     }
 
-    @GetMapping("/getCoordinates")
-    public ResponseEntity<String> getCoordinates(
+    @GetMapping("/getLocations")
+    public ResponseEntity<String> getLocations(
             @RequestHeader(HEADER_AUTH) String header
     ) throws JsonProcessingException {
         String username = getUsername(header, jwtUtil);
@@ -59,12 +55,11 @@ public class CoordinatesController extends Controller {
             return new ResponseEntity<>("User not found", HttpStatus.NOT_FOUND);
         }
         User user = userOptional.get();
-        List<Coordinates> coordinates = coordinatesRepository.findByUserId(user.getId());
-        List<CoordinatesDTO> coordinatesDTOs = coordinates.stream()
-                .map(CoordinatesDTO::new)
-                .collect(Collectors.toList());
-        String json = getJson(coordinatesDTOs);
-        System.out.println("it's method getCoordinates");
+        List<Location> locations = locationRepository.findByUserId(user.getId());
+        List<LocationDTO> locationDTOS = locations.stream()
+                .map(LocationDTO::new)
+                .toList();
+        String json = getJson(locationDTOS);
         return ResponseEntity.ok(json);
     }
 

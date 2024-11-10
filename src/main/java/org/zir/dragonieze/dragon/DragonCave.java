@@ -1,12 +1,14 @@
 package org.zir.dragonieze.dragon;
 
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
+import lombok.Getter;
+import lombok.Setter;
+import org.zir.dragonieze.user.User;
 
+@Getter
+@Setter
 @Entity
 public class DragonCave {
     @Id
@@ -16,5 +18,9 @@ public class DragonCave {
     private Integer numberOfTreasures; // может быть null,  больше 0
     @NotNull
     private boolean canEdit;
+
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
 }
