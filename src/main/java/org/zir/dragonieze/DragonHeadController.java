@@ -7,23 +7,30 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
+import org.zir.dragonieze.auth.JwtUtil;
 import org.zir.dragonieze.dragon.Coordinates;
 import org.zir.dragonieze.dragon.DragonHead;
 import org.zir.dragonieze.dragon.repo.DragonHeadRepository;
+import org.zir.dragonieze.dragon.repo.DragonRepository;
 import org.zir.dragonieze.dto.CoordinatesDTO;
 import org.zir.dragonieze.dto.DragonHeadDTO;
 import org.zir.dragonieze.user.User;
+import org.zir.dragonieze.user.UserRepository;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RestController
-@RequiredArgsConstructor
 @CrossOrigin(origins = "*")
 @RequestMapping("/dragon/user/head")
 public class DragonHeadController extends Controller {
     private final DragonHeadRepository headRepository;
+
+    public DragonHeadController(JwtUtil jwtUtil, UserRepository userRepository, DragonHeadRepository headRepository) {
+        super(jwtUtil, userRepository);
+        this.headRepository = headRepository;
+    }
 
     @Transactional
     @PostMapping("/addHead")

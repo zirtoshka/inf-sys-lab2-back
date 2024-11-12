@@ -8,6 +8,8 @@ import lombok.AllArgsConstructor;
 import org.jose4j.jwt.JwtClaims;
 import org.jose4j.jwt.MalformedClaimException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -16,6 +18,8 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @AllArgsConstructor
 @Component
@@ -48,15 +52,23 @@ public class JwtAuthFilter extends OncePerRequestFilter {
         if (username != null && username != "" && SecurityContextHolder.getContext().getAuthentication() == null) {
             UserDetails userDetails = userDetailsService.loadUserByUsername(username);
             try {
-                if (!jwtUtil.isTokenExpired(jwtUtil.validateToken(token))) {
-                    UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
-                            userDetails, null, userDetails.getAuthorities()
-                    );
-                    authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
-                    SecurityContextHolder.getContext().setAuthentication(authentication);
+                JwtClaims claims = jwtUtil.validateToken(token);
+                if (claims == null) {
+                    throw new Exception("Invalid token"); //todo
                 }
+                List<String> roles = jwtUtil.getRolesFromClaims(claims);
+                List<GrantedAuthority> authorities = roles.stream()
+                        .map(SimpleGrantedAuthority::new)
+                        .collect(Collectors.toList());
+
+                UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(
+                        userDetails, null, authorities);
+                SecurityContextHolder.getContext().setAuthentication(authentication);
+
             } catch (MalformedClaimException e) {
                 throw new RuntimeException(e);
+            } catch (Exception e) {
+                e.printStackTrace();
             }
         }
         filterChain.doFilter(request, response);

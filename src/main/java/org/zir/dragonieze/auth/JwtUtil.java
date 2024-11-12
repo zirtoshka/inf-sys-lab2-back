@@ -13,12 +13,15 @@ import org.jose4j.keys.HmacKey;
 import org.jose4j.lang.JoseException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
+import org.springframework.security.core.GrantedAuthority;
 
 
 import java.security.Key;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Component
 public class JwtUtil {
@@ -29,6 +32,7 @@ public class JwtUtil {
 
     @SneakyThrows
     public String extractUsername(String token) {
+        System.out.println("gogooggo " + token);
         return extractClaim(token, claims -> {
             try {
                 return claims.getSubject();
@@ -59,7 +63,7 @@ public class JwtUtil {
         jwtClaims.setSubject(userDetails.getUsername());
         jwtClaims.setIssuedAtToNow();
         jwtClaims.setExpirationTimeMinutesInTheFuture(60); // токен активен 1 час
-        jwtClaims.setClaim("role", userDetails.getAuthorities().toString());
+        jwtClaims.setClaim("role", userDetails.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.toList()));
 
         JsonWebSignature jws = new JsonWebSignature();
         jws.setPayload(jwtClaims.toJson());
@@ -92,13 +96,23 @@ public class JwtUtil {
     }
 
     private JwtClaims extractAllClaims(String token) throws InvalidJwtException {
-
+        System.out.println("agagagga " + token);
         JwtConsumer jwtConsumer = new JwtConsumerBuilder()
                 .setRequireExpirationTime()
                 .setMaxFutureValidityInMinutes(300)
                 .setRequireSubject()
                 .setVerificationKey(getKey())
                 .build();
+        System.out.println(jwtConsumer.processToClaims(token));
         return jwtConsumer.processToClaims(token);
+    }
+
+
+    public List<String> getRolesFromClaims(JwtClaims claims) {
+        Object roleClaim = claims.getClaimValue("role");
+        if (roleClaim instanceof List<?>) {
+            return (List<String>) roleClaim;
+        }
+        return List.of();
     }
 }

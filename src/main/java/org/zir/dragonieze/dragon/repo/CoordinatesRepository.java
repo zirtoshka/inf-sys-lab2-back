@@ -9,4 +9,5 @@ import java.util.Optional;
 public interface CoordinatesRepository extends JpaRepository<Coordinates, Long> {
     List<Coordinates> findByUserId(Long userId);
     Optional<Coordinates> findByIdAndUserId(Long id, Long userId);
+    List<Coordinates> findAll();
 }

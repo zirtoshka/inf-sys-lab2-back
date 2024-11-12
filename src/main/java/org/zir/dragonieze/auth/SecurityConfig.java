@@ -6,6 +6,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -25,6 +26,7 @@ import java.util.List;
 @Configuration
 @EnableWebSecurity
 @AllArgsConstructor
+@EnableGlobalMethodSecurity(prePostEnabled = true)
 public class SecurityConfig {
     private final JwtAuthFilter jwtAuthenticationFilter;
     private final UserDetailsService userDetailsService;
@@ -37,7 +39,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/dragon/auth/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/dragon/user/*").hasAnyRole("USER", "ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/dragons/**").hasRole("USER")
+                        .requestMatchers(HttpMethod.DELETE, "/dragon/**").hasAnyRole("USER", "ADMIN")
                         .requestMatchers("/dragon/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 ).cors(cors -> cors.configurationSource(corsConfigurationSource()))

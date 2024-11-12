@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.Setter;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -26,12 +27,17 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RestController
-@RequiredArgsConstructor
 @CrossOrigin(origins = "*")
+
 @RequestMapping("/dragon/user/dr")
 public class DragonController extends Controller {
 
     private final DragonRepository dragonRepository;
+
+    public DragonController(JwtUtil jwtUtil, UserRepository userRepository, DragonRepository dragonRepository) {
+        super(jwtUtil, userRepository);
+        this.dragonRepository = dragonRepository;
+    }
 
 
     @GetMapping("/hello")
@@ -64,6 +70,7 @@ public class DragonController extends Controller {
     public ResponseEntity<String> getDragons(
             @RequestHeader(HEADER_AUTH) String header
     ) throws JsonProcessingException {
+        System.out.println(jwtUtil+ "sdsd");
         String username = getUsername(header, jwtUtil);
         Optional<User> userOptional = userRepository.findByUsername(username);
 

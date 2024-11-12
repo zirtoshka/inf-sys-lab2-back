@@ -12,6 +12,7 @@ import org.zir.dragonieze.dragon.Coordinates;
 import org.zir.dragonieze.dragon.DragonCave;
 import org.zir.dragonieze.dragon.repo.CoordinatesRepository;
 import org.zir.dragonieze.dragon.repo.DragonCaveRepository;
+import org.zir.dragonieze.dragon.repo.DragonRepository;
 import org.zir.dragonieze.dto.CoordinatesDTO;
 import org.zir.dragonieze.dto.DragonCaveDTO;
 import org.zir.dragonieze.user.User;
@@ -24,10 +25,14 @@ import java.util.stream.Collectors;
 @RestController
 @RequestMapping("/dragon/user/cave")
 @CrossOrigin(origins = "*")
-@RequiredArgsConstructor
+
 public class DragonCaveController extends Controller {
     private final DragonCaveRepository caveRepository;
 
+    public DragonCaveController(JwtUtil jwtUtil, UserRepository userRepository, DragonCaveRepository caveRepository) {
+        super(jwtUtil, userRepository);
+        this.caveRepository = caveRepository;
+    }
 
     @Transactional
     @PostMapping("/addCave")

@@ -8,23 +8,30 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
+import org.zir.dragonieze.auth.JwtUtil;
 import org.zir.dragonieze.dragon.Coordinates;
 import org.zir.dragonieze.dragon.Location;
+import org.zir.dragonieze.dragon.repo.DragonRepository;
 import org.zir.dragonieze.dragon.repo.LocationRepository;
 import org.zir.dragonieze.dto.CoordinatesDTO;
 import org.zir.dragonieze.dto.LocationDTO;
 import org.zir.dragonieze.user.User;
+import org.zir.dragonieze.user.UserRepository;
 
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RestController
-@RequiredArgsConstructor
 @CrossOrigin(origins = "*")
 @RequestMapping("/dragon/user/loc")
 public class LocationController extends Controller {
     private final LocationRepository locationRepository;
+
+    public LocationController(JwtUtil jwtUtil, UserRepository userRepository, LocationRepository locationRepository) {
+        super(jwtUtil, userRepository);
+        this.locationRepository = locationRepository;
+    }
 
     @Transactional
     @PostMapping("/addLocation")

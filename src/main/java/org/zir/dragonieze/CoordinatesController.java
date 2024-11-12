@@ -6,6 +6,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.zir.dragonieze.auth.JwtUtil;
@@ -22,12 +23,16 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 @RestController
-@RequiredArgsConstructor
+
 @CrossOrigin(origins = "*")
 @RequestMapping("/dragon/user/coord")
 public class CoordinatesController extends Controller {
     private final CoordinatesRepository coordinatesRepository;
 
+    public CoordinatesController(JwtUtil jwtUtil, UserRepository userRepository, CoordinatesRepository coordinatesRepository) {
+        super(jwtUtil, userRepository);
+        this.coordinatesRepository = coordinatesRepository;
+    }
 
 
     @Transactional
@@ -67,5 +72,27 @@ public class CoordinatesController extends Controller {
         System.out.println("it's method getCoordinates");
         return ResponseEntity.ok(json);
     }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/getAllCoordinates")
+    public ResponseEntity<String> getALLCoordinates(
+            @RequestHeader(HEADER_AUTH) String header
+    ) throws JsonProcessingException {
+        String username = getUsername(header, jwtUtil);
+        Optional<User> userOptional = userRepository.findByUsername(username);
+
+        if (!userOptional.isPresent()) {
+            return new ResponseEntity<>("User not found", HttpStatus.NOT_FOUND);
+        }
+        User user = userOptional.get();
+        List<Coordinates> coordinates = coordinatesRepository.findAll();
+        List<CoordinatesDTO> coordinatesDTOs = coordinates.stream()
+                .map(CoordinatesDTO::new)
+                .collect(Collectors.toList());
+        String json = getJson(coordinatesDTOs);
+        System.out.println("it's method getCoordinates");
+        return ResponseEntity.ok(json);
+    }
+
 
 }
