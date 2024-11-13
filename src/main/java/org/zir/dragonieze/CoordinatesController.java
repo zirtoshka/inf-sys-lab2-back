@@ -114,6 +114,7 @@ public class CoordinatesController extends Controller {
             return new ResponseEntity<>("Coordinates not found", HttpStatus.NOT_FOUND);
         }
         Coordinates coordinates = coordinatesOptional.get();
+
         updateData.forEach((field, value) -> {
             try {
                 Field declaredField = Coordinates.class.getDeclaredField(field);

@@ -8,7 +8,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.zir.dragonieze.auth.JwtUtil;
-import org.zir.dragonieze.dragon.Coordinates;
 import org.zir.dragonieze.dragon.DragonCave;
 import org.zir.dragonieze.dragon.repo.CoordinatesRepository;
 import org.zir.dragonieze.dragon.repo.DragonCaveRepository;
