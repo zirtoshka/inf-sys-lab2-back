@@ -18,12 +18,16 @@ import org.zir.dragonieze.dto.CoordinatesDTO;
 import org.zir.dragonieze.user.User;
 import org.zir.dragonieze.user.UserRepository;
 
+import java.lang.reflect.Field;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-@RestController
+import static org.springframework.data.jpa.domain.AbstractPersistable_.id;
 
+@RestController
 @CrossOrigin(origins = "*")
 @RequestMapping("/dragon/user/coord")
 public class CoordinatesController extends Controller {
@@ -81,10 +85,9 @@ public class CoordinatesController extends Controller {
         String username = getUsername(header, jwtUtil);
         Optional<User> userOptional = userRepository.findByUsername(username);
 
-        if (!userOptional.isPresent()) {
+        if (userOptional.isEmpty()) {
             return new ResponseEntity<>("User not found", HttpStatus.NOT_FOUND);
         }
-        User user = userOptional.get();
         List<Coordinates> coordinates = coordinatesRepository.findAll();
         List<CoordinatesDTO> coordinatesDTOs = coordinates.stream()
                 .map(CoordinatesDTO::new)
@@ -92,6 +95,39 @@ public class CoordinatesController extends Controller {
         String json = getJson(coordinatesDTOs);
         System.out.println("it's method getCoordinates");
         return ResponseEntity.ok(json);
+    }
+
+
+    @PostMapping("/update/{id}")
+    public ResponseEntity<String> updateCoordinates(
+            @RequestHeader(HEADER_AUTH) String header,
+            @PathVariable String id,
+            @RequestBody Map<String, Object> updateData
+    ) throws JsonProcessingException {
+        String username = getUsername(header, jwtUtil);
+        Optional<User> userOptional = userRepository.findByUsername(username);
+        if (userOptional.isEmpty()) {
+            return new ResponseEntity<>("User not found", HttpStatus.NOT_FOUND);
+        }
+        Optional<Coordinates> coordinatesOptional = coordinatesRepository.findByIdAndUserId(Long.parseLong(id), userOptional.get().getId());
+        if (!coordinatesOptional.isPresent()) {
+            return new ResponseEntity<>("Coordinates not found", HttpStatus.NOT_FOUND);
+        }
+        Coordinates coordinates = coordinatesOptional.get();
+        updateData.forEach((field, value) -> {
+            try {
+                Field declaredField = Coordinates.class.getDeclaredField(field);
+                declaredField.setAccessible(true);
+                declaredField.set(coordinates, value);
+                declaredField.setAccessible(false);
+            } catch (NoSuchFieldException | IllegalAccessException e) {
+                throw new RuntimeException("error updatinf field: " + field, e);
+            }
+        });
+        coordinatesRepository.save(coordinates);
+        String json = getJson(new CoordinatesDTO(coordinates));
+        return ResponseEntity.ok(json);
+
     }
 
 
