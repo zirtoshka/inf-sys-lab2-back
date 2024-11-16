@@ -34,4 +34,5 @@ build/
 
 ### secret ###
 /src/main/resources/application-secret.yaml
+/src/main/resources/admin-config.properties
 
