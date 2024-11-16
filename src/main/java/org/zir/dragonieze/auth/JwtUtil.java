@@ -17,6 +17,8 @@ import org.springframework.security.core.GrantedAuthority;
 
 
 import java.security.Key;
+import java.security.SecureRandom;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -25,7 +27,7 @@ import java.util.stream.Collectors;
 
 @Component
 public class JwtUtil {
-    private static final String SECRET = "dragonieze0914a072a1dd67d2bcea47d5764a5653deeb39880c6d08d3bbd8ced116d63be8";
+    private static final String SECRET = generateSecret(64);
 
     private static final String TOKEN_PREFIX = "Bearer ";
     private static final String HEADER_STRING = "Authorization";
@@ -96,14 +98,12 @@ public class JwtUtil {
     }
 
     private JwtClaims extractAllClaims(String token) throws InvalidJwtException {
-        System.out.println("agagagga " + token);
         JwtConsumer jwtConsumer = new JwtConsumerBuilder()
                 .setRequireExpirationTime()
                 .setMaxFutureValidityInMinutes(300)
                 .setRequireSubject()
                 .setVerificationKey(getKey())
                 .build();
-        System.out.println(jwtConsumer.processToClaims(token));
         return jwtConsumer.processToClaims(token);
     }
 
@@ -114,5 +114,12 @@ public class JwtUtil {
             return (List<String>) roleClaim;
         }
         return List.of();
+    }
+
+    private static String generateSecret(int length){
+        SecureRandom random = new SecureRandom();
+        byte[] bytes = new byte[length];
+        random.nextBytes(bytes);
+        return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
     }
 }
