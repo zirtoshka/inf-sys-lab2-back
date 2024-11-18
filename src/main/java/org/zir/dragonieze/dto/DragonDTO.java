@@ -29,7 +29,9 @@ public class DragonDTO {
         this.name = dragon.getName();
         this.coordinates = new CoordinatesDTO(dragon.getCoordinates());
         this.cave = new DragonCaveDTO(dragon.getCave());
-        this.killer = new PersonDTO(dragon.getKiller());
+        if (dragon.getKiller() != null) {
+            this.killer = new PersonDTO(dragon.getKiller());
+        }
         this.age = dragon.getAge();
         this.wingspan = dragon.getWingspan();
         this.color = dragon.getColor();

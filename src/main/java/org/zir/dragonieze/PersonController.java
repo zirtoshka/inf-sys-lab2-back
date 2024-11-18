@@ -8,10 +8,12 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.server.ResponseStatusException;
 import org.zir.dragonieze.auth.JwtUtil;
+import org.zir.dragonieze.dragon.Coordinates;
 import org.zir.dragonieze.dragon.Location;
 import org.zir.dragonieze.dragon.Person;
 import org.zir.dragonieze.dragon.repo.LocationRepository;
 import org.zir.dragonieze.dragon.repo.PersonRepository;
+import org.zir.dragonieze.dto.CoordinatesDTO;
 import org.zir.dragonieze.dto.PersonDTO;
 import org.zir.dragonieze.user.User;
 import org.zir.dragonieze.user.UserRepository;
@@ -68,5 +70,40 @@ public class PersonController extends Controller {
         return ResponseEntity.ok(json);
     }
 
+
+    @Transactional
+    @PostMapping("/update")
+    public ResponseEntity<String> updatePerson(
+            @RequestHeader(HEADER_AUTH) String header,
+            @Valid @RequestBody Person person
+    ) throws JsonProcessingException {
+        Person updatePerson = updateEntityWithUser(
+                header,
+                person,
+                person.getId(),
+                personRepository::findById,
+                Person::getUser,
+                (old, updated) -> {
+                    old.setName(updated.getName());
+                    old.setEyeColor(updated.getEyeColor());
+                    old.setHairColor(updated.getHairColor());
+                    old.setLocation(validateAndRetrieveLocation(updated.getLocation()));
+                    old.setHeight(updated.getHeight());
+                    old.setPassportID(updated.getPassportID());
+                    old.setNationality(updated.getNationality());
+                    old.setCanEdit(updated.getCanEdit());
+                },
+                personRepository
+        );
+        String json = getJson(new PersonDTO(updatePerson));
+        return ResponseEntity.ok(json);
+    }
+
+    private Location validateAndRetrieveLocation(Location location) {
+        if (location == null) {
+            return null;
+        }
+        return validateAndGetEntity(location.getId(), locationRepository, "Location");
+    }
 
 }

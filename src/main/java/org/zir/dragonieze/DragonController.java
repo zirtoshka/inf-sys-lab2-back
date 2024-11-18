@@ -2,6 +2,7 @@ package org.zir.dragonieze;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import jakarta.validation.Valid;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -12,6 +13,7 @@ import org.zir.dragonieze.auth.JwtUtil;
 import org.zir.dragonieze.dragon.*;
 import org.zir.dragonieze.dragon.repo.*;
 import org.zir.dragonieze.dto.DragonDTO;
+import org.zir.dragonieze.dto.PersonDTO;
 import org.zir.dragonieze.user.UserRepository;
 import org.zir.dragonieze.user.User;
 
@@ -74,20 +76,10 @@ public class DragonController extends Controller {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "At least one dragon head is required");
         }
 
-        List<DragonHead> validatedHeads = new ArrayList<>();
-        for (DragonHead head : dragon.getHeads()) {
-            if (head.getId() > 0) {
-                DragonHead existingHead = headRepository.findById(head.getId())
-                        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Dragon head with ID " + head.getId() + " not found"));
-                validatedHeads.add(existingHead);
-            } else {
-                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "dragon head is not ok");
-            }
-        }
-
+        List<DragonHead> validatedHeads = validateAndRetrieveHeads(dragon.getHeads(), headRepository);
         dragon.setHeads(validatedHeads);
-        dragon.setCreationDate(LocalDate.now());
 
+        dragon.setCreationDate(LocalDate.now());
 
         Dragon savedDragon = saveEntityWithUser(header, dragon, Dragon::setUser, dragonRepository);
         String json = getJson(new DragonDTO(savedDragon));
@@ -114,6 +106,85 @@ public class DragonController extends Controller {
         String json = getJson(dragonDTOs);
         System.out.println("it's method getDragons");
         return ResponseEntity.ok(json);
+    }
+
+
+    @Transactional
+    @PostMapping("/update")
+    public ResponseEntity<String> updateDragon(
+            @RequestHeader(HEADER_AUTH) String header,
+            @Valid @RequestBody Dragon dragon
+    ) throws JsonProcessingException {
+        System.out.println("dsfsf");
+        Dragon updateDragon = updateEntityWithUser(
+                header,
+                dragon,
+                dragon.getId(),
+                dragonRepository::findById,
+                Dragon::getUser,
+                (old, updated) -> {
+                    old.setName(updated.getName());
+                    old.setCoordinates(validateAndRetrieveCoordinates(updated.getCoordinates()));
+                    old.setCreationDate(updated.getCreationDate());
+                    old.setCave(validateAndRetrieveCave(updated.getCave()));
+                    old.setKiller(validateAndRetrieveKiller(updated.getKiller()));
+                    old.setAge(updated.getAge());
+                    old.setWingspan(updated.getWingspan());
+                    old.setColor(updated.getColor());
+                    old.setCharacter(updated.getCharacter());
+                    old.setCanEdit(updated.getCanEdit());
+                    List<DragonHead> validatedHeads = validateAndRetrieveHeads(updated.getHeads(), headRepository);
+                    old.setHeads(validatedHeads);
+                },
+                dragonRepository
+        );
+
+
+        String json = getJson(new DragonDTO(updateDragon));
+        return ResponseEntity.ok(json);
+    }
+
+    private Person validateAndRetrieveKiller(Person person) {
+        if (person == null) {
+            return null;
+        }
+        return validateAndGetEntity(person.getId(), personRepository, "Killer");
+    }
+
+    private Coordinates validateAndRetrieveCoordinates(Coordinates coordinates) {
+        return validateAndGetEntity(
+                coordinates != null ? coordinates.getId() : null,
+                coordinatesRepository,
+                "Coordinates"
+        );
+    }
+
+    private DragonCave validateAndRetrieveCave(DragonCave cave) {
+        return validateAndGetEntity(
+                cave != null ? cave.getId() : null,
+                caveRepository,
+                "DragonCave"
+        );
+    }
+
+    private List<DragonHead> validateAndRetrieveHeads(List<DragonHead> heads, JpaRepository<DragonHead, Long> repository) {
+        if (heads == null || heads.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Dragon must have at least one head.");
+        }
+
+        List<DragonHead> validatedHeads = new ArrayList<>();
+
+        for (DragonHead head : heads) {
+            if (head.getId() > 0) {
+                DragonHead existingHead = repository.findById(head.getId())
+                        .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Dragon head with ID " + head.getId() + " not found"));
+                validatedHeads.add(existingHead);
+            } else {
+                throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Invalid dragon head: ID must be provided for all heads.");
+            }
+        }
+
+        return validatedHeads;
     }
 
 

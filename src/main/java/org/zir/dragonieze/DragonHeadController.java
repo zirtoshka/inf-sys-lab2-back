@@ -76,7 +76,6 @@ public class DragonHeadController extends Controller {
                 DragonHead::getUser,
                 (old, updated) -> {
                     old.setEyesCount(updated.getEyesCount());
-                    //todo dragon heeelp
                     old.setCanEdit(updated.getCanEdit());
                 },
                 headRepository

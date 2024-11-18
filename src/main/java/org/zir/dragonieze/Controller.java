@@ -131,4 +131,6 @@ public class Controller {
         return repository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, entityType + " not found"));
     }
+
+
 }
