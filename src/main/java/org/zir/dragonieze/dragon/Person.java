@@ -15,7 +15,7 @@ import org.zir.dragonieze.user.User;
 @Setter
 @Getter
 @AllArgsConstructor
-public class Person {
+public class Person implements EditableEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long id;
@@ -46,4 +46,8 @@ public class Person {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    @Override
+    public boolean getCanEdit() {
+        return canEdit;
+    }
 }

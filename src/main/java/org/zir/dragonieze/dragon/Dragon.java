@@ -9,13 +9,14 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.zir.dragonieze.user.User;
 
+
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
 @Setter
 @Entity
 @Table(name = "dragon")
-public class Dragon {
+public class Dragon implements EditableEntity{
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long id; // больше 0, уникальным, генерироваться автоматически
@@ -56,4 +57,8 @@ public class Dragon {
     private User user;
 
 
+    @Override
+    public boolean getCanEdit() {
+        return canEdit;
+    }
 }

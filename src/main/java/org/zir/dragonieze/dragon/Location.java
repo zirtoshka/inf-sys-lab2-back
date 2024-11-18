@@ -13,7 +13,7 @@ import org.zir.dragonieze.user.User;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-public class Location {
+public class Location implements EditableEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long id;
@@ -32,4 +32,8 @@ public class Location {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    @Override
+    public boolean getCanEdit() {
+        return canEdit;
+    }
 }

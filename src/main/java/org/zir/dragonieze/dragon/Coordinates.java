@@ -6,8 +6,6 @@ import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import org.zir.dragonieze.user.User;
 
-import java.io.Serializable;
-
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter

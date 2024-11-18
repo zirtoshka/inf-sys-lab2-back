@@ -9,7 +9,7 @@ import org.zir.dragonieze.user.User;
 @Getter
 @Setter
 @Entity
-public class DragonHead {
+public class DragonHead implements EditableEntity{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
@@ -26,4 +26,9 @@ public class DragonHead {
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
+
+    @Override
+    public boolean getCanEdit() {
+        return canEdit;
+    }
 }
