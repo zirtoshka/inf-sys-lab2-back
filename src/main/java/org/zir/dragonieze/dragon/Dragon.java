@@ -9,6 +9,10 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.zir.dragonieze.user.User;
 
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -25,20 +29,20 @@ public class Dragon implements EditableEntity{
     private String name; // не  null, Строка не может быть пустой
 
     @NotNull
-    @OneToOne(cascade = CascadeType.ALL, optional = false, orphanRemoval = true)
-    @JoinColumn(name = "coord_id")
+    @ManyToOne(cascade = CascadeType.ALL, optional = false)
+    @JoinColumn(name = "coord_id", nullable = false)
     private Coordinates coordinates; // не null
     @NotNull
-    private java.time.LocalDate creationDate; // не null, генерироваться автоматически
+    private java.time.LocalDate creationDate = LocalDate.now(); // не null, генерироваться автоматически
 
 
     @NotNull
     @ManyToOne(cascade = CascadeType.ALL, optional = false) // Много драконов могут относиться к одной пещере
-    @JoinColumn(name = "cave_id", nullable = false) // один дракон только в одной пещере
+    @JoinColumn(name = "cave_id",  nullable = false)
     private DragonCave cave; // не null
 
-    @ManyToOne(cascade = CascadeType.ALL)
-    @JoinColumn(name = "killer_id", nullable = true)
+    @ManyToOne(cascade = CascadeType.ALL, optional = true)
+    @JoinColumn(name = "killer_id")
     private Person killer; // может быть null
 
     @Positive
@@ -51,6 +55,10 @@ public class Dragon implements EditableEntity{
     private DragonCharacter character; // не null
     @NotNull
     private boolean canEdit;
+
+
+    @OneToMany(mappedBy = "dragon")
+    private List<DragonHead> heads = new ArrayList<>();
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)

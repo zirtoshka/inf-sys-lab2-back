@@ -107,7 +107,7 @@ public class Controller {
     }
 
 
-    public User getUserFromHeader(String header) {
+    private User getUserFromHeader(String header) {
         String username = getUsername(header, jwtUtil);
         return userRepository.findByUsername(username)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
@@ -121,4 +121,14 @@ public class Controller {
         return ResponseEntity.status(status).body(message);
     }
 
+
+    public <T> T validateAndGetEntity(
+            Long id, JpaRepository<T, Long> repository, String entityType
+    ) {
+        if (id == null || id <= 0) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, entityType + " ID must not be null or invalid");
+        }
+        return repository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, entityType + " not found"));
+    }
 }

@@ -38,12 +38,9 @@ public class PersonController extends Controller {
             @RequestHeader(HEADER_AUTH) String header,
             @Valid @RequestBody Person person
     ) throws JsonProcessingException {
-        if (person.getLocation() != null && person.getLocation().getId() > 0) {
-            Optional<Location> locationOptional = locationRepository.findById(person.getLocation().getId());
-            if (locationOptional.isEmpty()) {
-                throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Location not found");
-            }
-            person.setLocation(locationOptional.get());
+        if (person.getLocation() != null) {
+            Location location = validateAndGetEntity(person.getLocation().getId(), locationRepository, "Location");
+            person.setLocation(location);
         } else {
             person.setLocation(null);
         }

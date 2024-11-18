@@ -7,10 +7,14 @@ import lombok.Getter;
 import lombok.Setter;
 import org.zir.dragonieze.user.User;
 
+import java.util.ArrayList;
+import java.util.List;
+
 
 @Getter
 @Setter
 @Entity
+@Table(name = "cave")
 public class DragonCave implements EditableEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -28,4 +32,7 @@ public class DragonCave implements EditableEntity {
     public boolean getCanEdit() {
         return canEdit;
     }
+
+    @OneToMany(mappedBy = "cave")
+    private List<Dragon> dragonCaves = new ArrayList<>();
 }

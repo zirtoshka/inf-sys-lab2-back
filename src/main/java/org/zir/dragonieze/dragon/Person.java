@@ -10,6 +10,9 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.zir.dragonieze.user.User;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @NoArgsConstructor
 @Setter
@@ -49,4 +52,8 @@ public class Person implements EditableEntity {
     public boolean getCanEdit() {
         return canEdit;
     }
+
+    @OneToMany(mappedBy = "killer")
+    private List<Dragon> dragons = new ArrayList<>();
+
 }

@@ -6,6 +6,9 @@ import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import org.zir.dragonieze.user.User;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
@@ -28,6 +31,9 @@ public class Coordinates implements EditableEntity{
     public boolean getCanEdit() {
         return canEdit;
     }
+
+    @OneToMany(mappedBy = "coordinates")
+    private List<Dragon> dragons = new ArrayList<>();
 
 
 
