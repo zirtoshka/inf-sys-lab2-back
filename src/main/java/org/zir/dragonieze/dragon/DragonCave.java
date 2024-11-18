@@ -7,10 +7,12 @@ import lombok.Getter;
 import lombok.Setter;
 import org.zir.dragonieze.user.User;
 
+import java.io.Serializable;
+
 @Getter
 @Setter
 @Entity
-public class DragonCave {
+public class DragonCave implements EditableEntity{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -23,4 +25,8 @@ public class DragonCave {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    @Override
+    public boolean getCanEdit() {
+        return canEdit;
+    }
 }

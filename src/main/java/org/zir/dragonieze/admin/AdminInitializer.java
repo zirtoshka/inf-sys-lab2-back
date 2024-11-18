@@ -16,17 +16,19 @@ import java.util.Optional;
 public class AdminInitializer {
     @Value("${admin.username}")
     private String adminUsername;
-    @Value("${admin.password")
+    @Value("${admin.password}")
     private String adminPassword;
+
     @Bean
     public ApplicationRunner initAdmin(UserRepository userRepository, PasswordEncoder passwordEncoder) {
         return args -> {
             Optional<User> admin = userRepository.findByRole(Role.ADMIN);
             if (admin.isEmpty()) {
-                User newAdmin = new User();
-                newAdmin.setUsername(adminUsername);
-                newAdmin.setPassword(passwordEncoder.encode(adminPassword));
-                newAdmin.setRole(Role.ADMIN);
+                User newAdmin = User.builder()
+                        .username(adminUsername)
+                        .password(passwordEncoder.encode(adminPassword))
+                        .role(Role.ADMIN)
+                        .build();
                 userRepository.save(newAdmin);
             }
         };

@@ -2,22 +2,28 @@ package org.zir.dragonieze;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
-import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
-import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 import org.zir.dragonieze.auth.JwtUtil;
+import org.zir.dragonieze.dragon.EditableEntity;
+import org.zir.dragonieze.user.Role;
+import org.zir.dragonieze.user.User;
 import org.zir.dragonieze.user.UserRepository;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
+import java.util.function.BiConsumer;
+
+import java.util.function.Function;
 
 @Component
 public class Controller {
@@ -54,4 +60,65 @@ public class Controller {
         String json = mapper.writeValueAsString(entity);
         return json;
     }
+
+
+    @Transactional
+    public <T> T saveEntityWithUser(String header, T entity, BiConsumer<T, User> setUserFunction, JpaRepository<T, ?> repository) {
+        User user = getUserFromHeader(header);
+        setUserFunction.accept(entity, user);
+        return repository.save(entity);
+
+    }
+
+
+    @Transactional
+    public <T extends EditableEntity> T updateEntityWithUser(String header,
+                                                             T updatedEntity,
+                                                             Long updatedEntityId,
+                                                             Function<Long, Optional<T>> findByIdFunction,
+                                                             Function<T, User> getOwnerFunction,
+                                                             BiConsumer<T, T> updateFieldsFunction,
+                                                             JpaRepository<T, ?> repository) {
+
+        User user = getUserFromHeader(header);
+
+        //check existing
+        Optional<T> existingEntityOptional = findByIdFunction.apply(updatedEntityId);
+        if (existingEntityOptional.isEmpty()) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "Entity not found");
+        }
+        T existingEntity = existingEntityOptional.get();
+
+
+        // check for update
+        User owner = getOwnerFunction.apply(existingEntity);
+        if ((user.getRole().equals(Role.ADMIN) && existingEntity.getCanEdit())
+                || owner.getId().equals(user.getId())) {
+            // updating
+            updateFieldsFunction.accept(existingEntity, updatedEntity);
+
+            // saving
+            return repository.save(existingEntity);
+        } else {
+            throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You don't have permission to update this entity");
+        }
+
+
+    }
+
+
+    public User getUserFromHeader(String header) {
+        String username = getUsername(header, jwtUtil);
+        return userRepository.findByUsername(username)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
+    }
+
+
+    @ExceptionHandler(ResponseStatusException.class)
+    public ResponseEntity<String> handleResponseStatusException(ResponseStatusException ex) {
+        HttpStatus status = (HttpStatus) ex.getStatusCode();
+        String message = ex.getReason();
+        return ResponseEntity.status(status).body(message);
+    }
+
 }

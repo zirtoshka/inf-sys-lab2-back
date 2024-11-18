@@ -17,6 +17,6 @@ public class DragonCaveDTO {
     public DragonCaveDTO(DragonCave dragonCave) {
         this.id = dragonCave.getId();
         this.numberOfTreasures = dragonCave.getNumberOfTreasures();
-        this.canEdit = dragonCave.isCanEdit();
+        this.canEdit = dragonCave.getCanEdit();
     }
 }

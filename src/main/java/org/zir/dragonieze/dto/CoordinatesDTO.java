@@ -19,6 +19,6 @@ public class CoordinatesDTO {
         this.id = coordinates.getId();
         this.x = coordinates.getX();
         this.y = coordinates.getY();
-        this.canEdit = coordinates.isCanEdit();
+        this.canEdit = coordinates.getCanEdit();
     }
 }

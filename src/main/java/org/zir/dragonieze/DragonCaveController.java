@@ -8,12 +8,15 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.zir.dragonieze.auth.JwtUtil;
+import org.zir.dragonieze.dragon.Coordinates;
+import org.zir.dragonieze.dragon.Dragon;
 import org.zir.dragonieze.dragon.DragonCave;
 import org.zir.dragonieze.dragon.repo.CoordinatesRepository;
 import org.zir.dragonieze.dragon.repo.DragonCaveRepository;
 import org.zir.dragonieze.dragon.repo.DragonRepository;
 import org.zir.dragonieze.dto.CoordinatesDTO;
 import org.zir.dragonieze.dto.DragonCaveDTO;
+import org.zir.dragonieze.user.Role;
 import org.zir.dragonieze.user.User;
 import org.zir.dragonieze.user.UserRepository;
 
@@ -34,24 +37,17 @@ public class DragonCaveController extends Controller {
     }
 
     @Transactional
-    @PostMapping("/addCave")
+    @PostMapping("/add")
     public ResponseEntity<String> addCave(
             @RequestHeader(HEADER_AUTH) String header,
             @Valid @RequestBody DragonCave cave
     ) throws JsonProcessingException {
-        String username = getUsername(header, jwtUtil);
-        Optional<User> userOptional = userRepository.findByUsername(username);
-        if (userOptional.isEmpty()) {
-            return new ResponseEntity<>("User not found", HttpStatus.NOT_FOUND);
-        }
-        User user = userOptional.get();
-        cave.setUser(user);
-        caveRepository.save(cave);
-        String json = getJson(new DragonCaveDTO(cave));
+        DragonCave savedCave = saveEntityWithUser(header, cave, DragonCave::setUser, caveRepository);
+        String json = getJson(new DragonCaveDTO(savedCave));
         return ResponseEntity.ok(json);
     }
 
-    @GetMapping("/getCaves")
+    @GetMapping("/get")
     public ResponseEntity<String> getCaves(
             @RequestHeader(HEADER_AUTH) String header
     ) throws JsonProcessingException {
@@ -68,6 +64,29 @@ public class DragonCaveController extends Controller {
                 .collect(Collectors.toList());
         String json = getJson(caveDTOS);
         System.out.println("it's method getCaves");
+        return ResponseEntity.ok(json);
+    }
+
+
+    @Transactional
+    @PostMapping("/update")
+    public ResponseEntity<String> updateCave(
+            @RequestHeader(HEADER_AUTH) String header,
+            @Valid @RequestBody DragonCave cave
+    ) throws JsonProcessingException {
+        DragonCave updatedCave = updateEntityWithUser(
+                header,
+                cave,
+                cave.getId(),
+                caveRepository::findById,
+                DragonCave::getUser,
+                (old, updates) -> {
+                    old.setNumberOfTreasures(updates.getNumberOfTreasures());
+                    old.setCanEdit(updates.getCanEdit());
+                },
+                caveRepository
+        );
+        String json = getJson(new DragonCaveDTO(updatedCave));
         return ResponseEntity.ok(json);
     }
 }

@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 
 @RestController
 @CrossOrigin(origins = "*")
-@RequestMapping("/dragon/user/pers")
+@RequestMapping("/dragon/user/person")
 public class PersonController extends Controller {
     private final PersonRepository personRepository;
 
@@ -33,7 +33,7 @@ public class PersonController extends Controller {
     }
 
     @Transactional
-    @PostMapping("/addPerson")
+    @PostMapping("/add")
     public ResponseEntity<String> addPerson(
             @RequestHeader(HEADER_AUTH) String header,
             @Valid @RequestBody Person person
@@ -50,7 +50,7 @@ public class PersonController extends Controller {
         return ResponseEntity.ok(json);
     }
 
-    @GetMapping("/getPersons")
+    @GetMapping("/get")
     public ResponseEntity<String> getPersons(
             @RequestHeader(HEADER_AUTH) String header
     ) throws JsonProcessingException {

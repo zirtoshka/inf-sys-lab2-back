@@ -6,13 +6,15 @@ import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import org.zir.dragonieze.user.User;
 
+import java.io.Serializable;
+
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter
 @Setter
 @Entity
 @Table(name ="coord")
-public class Coordinates {
+public class Coordinates implements EditableEntity{
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private long id;
@@ -24,6 +26,12 @@ public class Coordinates {
     private Float y; //Значение поля должно быть больше -182, Поле не может быть null
     @NotNull
     private boolean canEdit;
+    @Override
+    public boolean getCanEdit() {
+        return canEdit;
+    }
+
+
 
 
     @ManyToOne
