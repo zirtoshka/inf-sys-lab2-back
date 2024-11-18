@@ -27,8 +27,7 @@ public class Person implements EditableEntity {
     private Color hairColor; //Поле не может быть null
 
 
-    @NotNull
-    @OneToOne(cascade = CascadeType.ALL, optional = false, orphanRemoval = true)
+    @ManyToOne(cascade = CascadeType.ALL, optional = true)
     @JoinColumn(name = "location_id")
     private Location location; //Поле может быть null
 

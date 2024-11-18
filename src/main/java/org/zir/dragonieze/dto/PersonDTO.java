@@ -26,10 +26,12 @@ public class PersonDTO {
         this.name = person.getName();
         this.eyeColor = person.getEyeColor();
         this.hairColor = person.getHairColor();
-        this.location = new LocationDTO(person.getLocation());
+        if (person.getLocation() != null) {
+            this.location = new LocationDTO(person.getLocation());
+        }
         this.height = person.getHeight();
         this.passportID = person.getPassportID();
         this.nationality = person.getNationality();
-        this.canEdit = person.isCanEdit();
+        this.canEdit = person.getCanEdit();
     }
 }

@@ -16,6 +16,6 @@ public class DragonHeadDTO {
     public DragonHeadDTO(DragonHead dragonHead) {
         this.id = dragonHead.getId();
         this.eyesCount = dragonHead.getEyesCount();
-        this.canEdit = dragonHead.isCanEdit();
+        this.canEdit = dragonHead.getCanEdit();
     }
 }

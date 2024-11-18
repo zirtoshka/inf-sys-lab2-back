@@ -34,7 +34,7 @@ public class DragonDTO {
         this.wingspan = dragon.getWingspan();
         this.color = dragon.getColor();
         this.character = dragon.getCharacter();
-        this.canEdit = dragon.isCanEdit();
+        this.canEdit = dragon.getCanEdit();
     }
 
 }

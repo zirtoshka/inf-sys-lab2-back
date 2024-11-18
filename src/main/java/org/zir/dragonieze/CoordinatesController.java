@@ -12,7 +12,6 @@ import org.zir.dragonieze.auth.JwtUtil;
 import org.zir.dragonieze.dragon.Coordinates;
 import org.zir.dragonieze.dragon.repo.CoordinatesRepository;
 import org.zir.dragonieze.dto.CoordinatesDTO;
-import org.zir.dragonieze.user.Role;
 import org.zir.dragonieze.user.User;
 import org.zir.dragonieze.user.UserRepository;
 

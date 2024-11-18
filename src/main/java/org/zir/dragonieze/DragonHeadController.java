@@ -19,7 +19,6 @@ import org.zir.dragonieze.user.UserRepository;
 
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @RestController
 @CrossOrigin(origins = "*")
@@ -33,24 +32,17 @@ public class DragonHeadController extends Controller {
     }
 
     @Transactional
-    @PostMapping("/addHead")
+    @PostMapping("/add")
     public ResponseEntity<String> addHead(
             @RequestHeader(HEADER_AUTH) String header,
             @Valid @RequestBody DragonHead head
     ) throws JsonProcessingException {
-        String username = getUsername(header, jwtUtil);
-        Optional<User> userOptional = userRepository.findByUsername(username);
-        if (userOptional.isEmpty()) {
-            return new ResponseEntity<>("User not found", HttpStatus.NOT_FOUND);
-        }
-        User user = userOptional.get();
-        head.setUser(user);
-        headRepository.save(head);
-        String json = getJson(new DragonHeadDTO(head));
+        DragonHead savedHead = saveEntityWithUser(header, head, DragonHead::setUser, headRepository);
+        String json = getJson(new DragonHeadDTO(savedHead));
         return ResponseEntity.ok(json);
     }
 
-    @GetMapping("/getHeads")
+    @GetMapping("/get")
     public ResponseEntity<String> getHeads(
             @RequestHeader(HEADER_AUTH) String header
     ) throws JsonProcessingException {
@@ -66,6 +58,30 @@ public class DragonHeadController extends Controller {
                 .map(DragonHeadDTO::new)
                 .toList();
         String json = getJson(headDTOS);
+        return ResponseEntity.ok(json);
+    }
+
+
+    @Transactional
+    @PostMapping("/update")
+    public ResponseEntity<String> updateHead(
+            @RequestHeader(HEADER_AUTH) String header,
+            @Valid @RequestBody DragonHead head
+    ) throws JsonProcessingException {
+        DragonHead updateHead = updateEntityWithUser(
+                header,
+                head,
+                head.getId(),
+                headRepository::findById,
+                DragonHead::getUser,
+                (old, updated) -> {
+                    old.setEyesCount(updated.getEyesCount());
+                    //todo dragon heeelp
+                    old.setCanEdit(updated.getCanEdit());
+                },
+                headRepository
+        );
+        String json = getJson(new DragonHeadDTO(updateHead));
         return ResponseEntity.ok(json);
     }
 

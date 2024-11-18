@@ -8,4 +8,5 @@ import java.util.List;
 public interface LocationRepository extends JpaRepository<Location, Long> {
     List<Location> findByUserId(Long userId);
 
+
 }

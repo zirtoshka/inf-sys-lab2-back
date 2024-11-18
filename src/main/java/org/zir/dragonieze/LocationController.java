@@ -34,24 +34,17 @@ public class LocationController extends Controller {
     }
 
     @Transactional
-    @PostMapping("/addLocation")
+    @PostMapping("/add")
     public ResponseEntity<String> addLocation(
             @RequestHeader(HEADER_AUTH) String header,
             @Valid @RequestBody Location location
     ) throws JsonProcessingException {
-        String username = getUsername(header, jwtUtil);
-        Optional<User> userOptional = userRepository.findByUsername(username);
-        if (userOptional.isEmpty()) {
-            return new ResponseEntity<>("User not found", HttpStatus.NOT_FOUND);
-        }
-        User user = userOptional.get();
-        location.setUser(user);
-        locationRepository.save(location);
-        String json = getJson(new LocationDTO(location));
+        Location savedLocation = saveEntityWithUser(header, location, Location::setUser, locationRepository);
+        String json = getJson(new LocationDTO(savedLocation));
         return ResponseEntity.ok(json);
     }
 
-    @GetMapping("/getLocations")
+    @GetMapping("/get")
     public ResponseEntity<String> getLocations(
             @RequestHeader(HEADER_AUTH) String header
     ) throws JsonProcessingException {
@@ -69,5 +62,29 @@ public class LocationController extends Controller {
         String json = getJson(locationDTOS);
         return ResponseEntity.ok(json);
     }
+
+    @Transactional
+    @PostMapping("/update")
+    public ResponseEntity<String> updateLocation(
+            @RequestHeader(HEADER_AUTH) String header,
+            @Valid @RequestBody Location location
+    ) throws JsonProcessingException {
+        Location updateLocation = updateEntityWithUser(
+                header,
+                location,
+                location.getId(),
+                locationRepository::findById,
+                Location::getUser,
+                (old, updated) -> {
+                    old.setX(updated.getX());
+                    old.setY(updated.getY());
+                    old.setCanEdit(updated.getCanEdit());
+                },
+                locationRepository
+        );
+        String json = getJson(new LocationDTO(updateLocation));
+        return ResponseEntity.ok(json);
+    }
+
 
 }

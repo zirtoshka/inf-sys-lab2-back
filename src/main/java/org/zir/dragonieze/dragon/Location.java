@@ -8,6 +8,9 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.zir.dragonieze.user.User;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @Setter
 @Getter
@@ -36,4 +39,6 @@ public class Location implements EditableEntity {
     public boolean getCanEdit() {
         return canEdit;
     }
+    @OneToMany(mappedBy = "location")
+    private List<Person> persons = new ArrayList<>();
 }

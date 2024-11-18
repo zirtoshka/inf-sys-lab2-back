@@ -9,19 +9,15 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.validation.FieldError;
-import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.*;
 import org.zir.dragonieze.auth.JwtUtil;
 import org.zir.dragonieze.dragon.Dragon;
-import org.zir.dragonieze.dragon.repo.CoordinatesRepository;
 import org.zir.dragonieze.dragon.repo.DragonRepository;
 import org.zir.dragonieze.dto.DragonDTO;
 import org.zir.dragonieze.user.UserRepository;
 import org.zir.dragonieze.user.User;
 
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;

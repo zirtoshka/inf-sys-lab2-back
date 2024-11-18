@@ -22,7 +22,7 @@ public class LocationDTO {
         this.y = location.getY();
         this.z = location.getZ();
         this.name = location.getName();
-        this.canEdit = location.isCanEdit();
+        this.canEdit = location.getCanEdit();
     }
 
 }
