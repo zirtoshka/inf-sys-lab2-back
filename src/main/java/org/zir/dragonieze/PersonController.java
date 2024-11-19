@@ -6,17 +6,13 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
-import org.zir.dragonieze.auth.JwtUtil;
-import org.zir.dragonieze.dragon.Coordinates;
 import org.zir.dragonieze.dragon.Location;
 import org.zir.dragonieze.dragon.Person;
 import org.zir.dragonieze.dragon.repo.LocationRepository;
 import org.zir.dragonieze.dragon.repo.PersonRepository;
-import org.zir.dragonieze.dto.CoordinatesDTO;
 import org.zir.dragonieze.dto.PersonDTO;
+import org.zir.dragonieze.services.BaseService;
 import org.zir.dragonieze.user.User;
-import org.zir.dragonieze.user.UserRepository;
 
 import java.util.List;
 import java.util.Optional;
@@ -28,8 +24,8 @@ public class PersonController extends Controller {
     private final PersonRepository personRepository;
     private final LocationRepository locationRepository;
 
-    public PersonController(JwtUtil jwtUtil, UserRepository userRepository, PersonRepository personRepository, LocationRepository locationRepository) {
-        super(jwtUtil, userRepository);
+    public PersonController(BaseService service, PersonRepository personRepository, LocationRepository locationRepository) {
+        super(service);
         this.personRepository = personRepository;
         this.locationRepository = locationRepository;
     }
@@ -41,34 +37,34 @@ public class PersonController extends Controller {
             @Valid @RequestBody Person person
     ) throws JsonProcessingException {
         if (person.getLocation() != null) {
-            Location location = validateAndGetEntity(person.getLocation().getId(), locationRepository, "Location");
+            Location location = service.validateAndGetEntity(person.getLocation().getId(), locationRepository, "Location");
             person.setLocation(location);
         } else {
             person.setLocation(null);
         }
-        Person savedPerson = saveEntityWithUser(header, person, Person::setUser, personRepository);
-        String json = getJson(new PersonDTO(savedPerson));
+        Person savedPerson = service.saveEntityWithUser(header, person, Person::setUser, personRepository);
+        String json = service.convertToJson(new PersonDTO(savedPerson));
         return ResponseEntity.ok(json);
     }
 
-    @GetMapping("/get")
-    public ResponseEntity<String> getPersons(
-            @RequestHeader(HEADER_AUTH) String header
-    ) throws JsonProcessingException {
-        String username = getUsername(header, jwtUtil);
-        Optional<User> userOptional = userRepository.findByUsername(username);
-
-        if (!userOptional.isPresent()) {
-            return new ResponseEntity<>("User not found", HttpStatus.NOT_FOUND);
-        }
-        User user = userOptional.get();
-        List<Person> personList = personRepository.findByUserId(user.getId());
-        List<PersonDTO> personDTOS = personList.stream()
-                .map(PersonDTO::new)
-                .toList();
-        String json = getJson(personDTOS);
-        return ResponseEntity.ok(json);
-    }
+//    @GetMapping("/get")
+//    public ResponseEntity<String> getPersons(
+//            @RequestHeader(HEADER_AUTH) String header
+//    ) throws JsonProcessingException {
+//        String username = getUsername(header, jwtUtil);
+//        Optional<User> userOptional = userRepository.findByUsername(username);
+//
+//        if (!userOptional.isPresent()) {
+//            return new ResponseEntity<>("User not found", HttpStatus.NOT_FOUND);
+//        }
+//        User user = userOptional.get();
+//        List<Person> personList = personRepository.findByUserId(user.getId());
+//        List<PersonDTO> personDTOS = personList.stream()
+//                .map(PersonDTO::new)
+//                .toList();
+//        String json = convertToJson(personDTOS);
+//        return ResponseEntity.ok(json);
+//    }
 
 
     @Transactional
@@ -77,7 +73,7 @@ public class PersonController extends Controller {
             @RequestHeader(HEADER_AUTH) String header,
             @Valid @RequestBody Person person
     ) throws JsonProcessingException {
-        Person updatePerson = updateEntityWithUser(
+        Person updatePerson = service.updateEntityWithUser(
                 header,
                 person,
                 person.getId(),
@@ -95,7 +91,7 @@ public class PersonController extends Controller {
                 },
                 personRepository
         );
-        String json = getJson(new PersonDTO(updatePerson));
+        String json = service.convertToJson(new PersonDTO(updatePerson));
         return ResponseEntity.ok(json);
     }
 
@@ -103,7 +99,7 @@ public class PersonController extends Controller {
         if (location == null) {
             return null;
         }
-        return validateAndGetEntity(location.getId(), locationRepository, "Location");
+        return service.validateAndGetEntity(location.getId(), locationRepository, "Location");
     }
 
 }

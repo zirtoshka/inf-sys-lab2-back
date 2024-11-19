@@ -7,6 +7,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.zir.dragonieze.auth.JwtUtil;
+import org.zir.dragonieze.services.BaseService;
 import org.zir.dragonieze.user.User;
 import org.zir.dragonieze.user.UserRepository;
 
@@ -19,8 +20,8 @@ import java.util.Optional;
 public class ApplicationController extends Controller {
     private final AppRepository appRepository;
 
-    public ApplicationController(JwtUtil jwtUtil, UserRepository userRepository, AppRepository appRepository) {
-        super(jwtUtil, userRepository);
+    public ApplicationController(BaseService baseService, AppRepository appRepository) {
+        super(baseService);
         this.appRepository = appRepository;
     }
 
@@ -28,12 +29,8 @@ public class ApplicationController extends Controller {
     public ResponseEntity<String> newApp(
             @RequestHeader(HEADER_AUTH) String header
     ) {
-        String username = getUsername(header, jwtUtil);
-        Optional<User> userOptional = userRepository.findByUsername(username);
-        if (userOptional.isEmpty()) {
-            return new ResponseEntity<>("User not found", HttpStatus.NOT_FOUND);
-        }
-        User user = userOptional.get();
+
+        User user = service.getUserFromHeader(header);
         AdminApplication newApp = new AdminApplication();
         newApp.setCreatedAt(LocalDateTime.now());
         newApp.setStatus(StatusApplication.NEW);
@@ -41,7 +38,6 @@ public class ApplicationController extends Controller {
 
         appRepository.save(newApp);
         return new ResponseEntity<>("New app created", HttpStatus.CREATED);
-
 
     }
 

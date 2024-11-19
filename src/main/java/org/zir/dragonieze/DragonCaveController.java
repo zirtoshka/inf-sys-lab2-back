@@ -2,27 +2,15 @@ package org.zir.dragonieze;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
-import org.zir.dragonieze.auth.JwtUtil;
-import org.zir.dragonieze.dragon.Coordinates;
-import org.zir.dragonieze.dragon.Dragon;
-import org.zir.dragonieze.dragon.DragonCave;
-import org.zir.dragonieze.dragon.repo.CoordinatesRepository;
-import org.zir.dragonieze.dragon.repo.DragonCaveRepository;
-import org.zir.dragonieze.dragon.repo.DragonRepository;
-import org.zir.dragonieze.dto.CoordinatesDTO;
-import org.zir.dragonieze.dto.DragonCaveDTO;
-import org.zir.dragonieze.user.Role;
-import org.zir.dragonieze.user.User;
-import org.zir.dragonieze.user.UserRepository;
 
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
+import org.zir.dragonieze.dragon.DragonCave;
+import org.zir.dragonieze.dragon.repo.DragonCaveRepository;
+import org.zir.dragonieze.dto.DragonCaveDTO;
+import org.zir.dragonieze.services.BaseService;
+
 
 @RestController
 @RequestMapping("/dragon/user/cave")
@@ -31,8 +19,8 @@ import java.util.stream.Collectors;
 public class DragonCaveController extends Controller {
     private final DragonCaveRepository caveRepository;
 
-    public DragonCaveController(JwtUtil jwtUtil, UserRepository userRepository, DragonCaveRepository caveRepository) {
-        super(jwtUtil, userRepository);
+    public DragonCaveController(BaseService baseService, DragonCaveRepository caveRepository) {
+        super(baseService);
         this.caveRepository = caveRepository;
     }
 
@@ -42,8 +30,8 @@ public class DragonCaveController extends Controller {
             @RequestHeader(HEADER_AUTH) String header,
             @Valid @RequestBody DragonCave cave
     ) throws JsonProcessingException {
-        DragonCave savedCave = saveEntityWithUser(header, cave, DragonCave::setUser, caveRepository);
-        String json = getJson(new DragonCaveDTO(savedCave));
+        DragonCave savedCave = service.saveEntityWithUser(header, cave, DragonCave::setUser, caveRepository);
+        String json = service.convertToJson(new DragonCaveDTO(savedCave));
         return ResponseEntity.ok(json);
     }
 
@@ -51,20 +39,20 @@ public class DragonCaveController extends Controller {
     public ResponseEntity<String> getCaves(
             @RequestHeader(HEADER_AUTH) String header
     ) throws JsonProcessingException {
-        String username = getUsername(header, jwtUtil);
-        Optional<User> userOptional = userRepository.findByUsername(username);
-
-        if (!userOptional.isPresent()) {
-            return new ResponseEntity<>("User not found", HttpStatus.NOT_FOUND);
-        }
-        User user = userOptional.get();
-        List<DragonCave> caves = caveRepository.findByUserId(user.getId());
-        List<DragonCaveDTO> caveDTOS = caves.stream()
-                .map(DragonCaveDTO::new)
-                .collect(Collectors.toList());
-        String json = getJson(caveDTOS);
-        System.out.println("it's method getCaves");
-        return ResponseEntity.ok(json);
+//        String username = service.getUserFromHeader(header);
+//        Optional<User> userOptional = userRepository.findByUsername(username);
+//
+//        if (!userOptional.isPresent()) {
+//            return new ResponseEntity<>("User not found", HttpStatus.NOT_FOUND);
+//        }
+//        User user = userOptional.get();
+//        List<DragonCave> caves = caveRepository.findByUserId(user.getId());
+//        List<DragonCaveDTO> caveDTOS = caves.stream()
+//                .map(DragonCaveDTO::new)
+//                .collect(Collectors.toList());
+//        String json = convertToJson(caveDTOS);
+//        System.out.println("it's method getCaves");
+        return ResponseEntity.ok("ds");
     }
 
 
@@ -74,7 +62,7 @@ public class DragonCaveController extends Controller {
             @RequestHeader(HEADER_AUTH) String header,
             @Valid @RequestBody DragonCave cave
     ) throws JsonProcessingException {
-        DragonCave updatedCave = updateEntityWithUser(
+        DragonCave updatedCave = service.updateEntityWithUser(
                 header,
                 cave,
                 cave.getId(),
@@ -86,7 +74,7 @@ public class DragonCaveController extends Controller {
                 },
                 caveRepository
         );
-        String json = getJson(new DragonCaveDTO(updatedCave));
+        String json = service.convertToJson(new DragonCaveDTO(updatedCave));
         return ResponseEntity.ok(json);
     }
 }

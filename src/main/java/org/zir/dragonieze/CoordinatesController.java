@@ -3,23 +3,14 @@ package org.zir.dragonieze;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import jakarta.validation.Valid;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
-import org.zir.dragonieze.auth.JwtUtil;
 import org.zir.dragonieze.dragon.Coordinates;
 import org.zir.dragonieze.dragon.repo.CoordinatesRepository;
 import org.zir.dragonieze.dto.CoordinatesDTO;
-import org.zir.dragonieze.user.User;
-import org.zir.dragonieze.user.UserRepository;
+import org.zir.dragonieze.services.BaseService;
 
-
-import java.util.List;
-
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 
 @RestController
@@ -28,8 +19,9 @@ import java.util.stream.Collectors;
 public class CoordinatesController extends Controller {
     private final CoordinatesRepository coordinatesRepository;
 
-    public CoordinatesController(JwtUtil jwtUtil, UserRepository userRepository, CoordinatesRepository coordinatesRepository) {
-        super(jwtUtil, userRepository);
+    public CoordinatesController(CoordinatesRepository coordinatesRepository,
+                                 BaseService service) {
+        super(service);
         this.coordinatesRepository = coordinatesRepository;
     }
 
@@ -40,8 +32,19 @@ public class CoordinatesController extends Controller {
             @RequestHeader(HEADER_AUTH) String header,
             @Valid @RequestBody Coordinates coordinates
     ) throws JsonProcessingException {
-        Coordinates savedCoordinates = saveEntityWithUser(header, coordinates, Coordinates::setUser, coordinatesRepository);
-        String json = getJson(new CoordinatesDTO(savedCoordinates));
+        Coordinates savedCoordinates = service.saveEntityWithUser(header, coordinates, Coordinates::setUser, coordinatesRepository);
+        String json = service.convertToJson(new CoordinatesDTO(savedCoordinates));
+        return ResponseEntity.ok(json);
+    }
+
+    @Transactional
+    @PostMapping("/delete")
+    public ResponseEntity<String> deleteCoordinates(
+            @RequestHeader(HEADER_AUTH) String header,
+            @Valid @RequestBody Coordinates coordinates
+    ) throws JsonProcessingException {
+        Coordinates savedCoordinates = service.saveEntityWithUser(header, coordinates, Coordinates::setUser, coordinatesRepository);
+        String json = service.convertToJson(new CoordinatesDTO(savedCoordinates));
         return ResponseEntity.ok(json);
     }
 
@@ -49,41 +52,41 @@ public class CoordinatesController extends Controller {
     public ResponseEntity<String> getCoordinates(
             @RequestHeader(HEADER_AUTH) String header
     ) throws JsonProcessingException {
-        String username = getUsername(header, jwtUtil);
-        Optional<User> userOptional = userRepository.findByUsername(username);
-
-        if (!userOptional.isPresent()) {
-            return new ResponseEntity<>("User not found", HttpStatus.NOT_FOUND);
-        }
-        User user = userOptional.get();
-        List<Coordinates> coordinates = coordinatesRepository.findByUserId(user.getId());
-        List<CoordinatesDTO> coordinatesDTOs = coordinates.stream()
-                .map(CoordinatesDTO::new)
-                .collect(Collectors.toList());
-        String json = getJson(coordinatesDTOs);
-        System.out.println("it's method getCoordinates");
-        return ResponseEntity.ok(json);
+//        String username = getUsername(header, jwtUtil);
+//        Optional<User> userOptional = userRepository.findByUsername(username);
+//
+//        if (!userOptional.isPresent()) {
+//            return new ResponseEntity<>("User not found", HttpStatus.NOT_FOUND);
+//        }
+//        User user = userOptional.get();
+//        List<Coordinates> coordinates = coordinatesRepository.findByUserId(user.getId());
+//        List<CoordinatesDTO> coordinatesDTOs = coordinates.stream()
+//                .map(CoordinatesDTO::new)
+//                .collect(Collectors.toList());
+//        String json = convertToJson(coordinatesDTOs);
+//        System.out.println("it's method getCoordinates");
+        return ResponseEntity.ok("dsds");
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
-    @GetMapping("/getAllCoordinates")
-    public ResponseEntity<String> getALLCoordinates(
-            @RequestHeader(HEADER_AUTH) String header
-    ) throws JsonProcessingException {
-        String username = getUsername(header, jwtUtil);
-        Optional<User> userOptional = userRepository.findByUsername(username);
-
-        if (userOptional.isEmpty()) {
-            return new ResponseEntity<>("User not found", HttpStatus.NOT_FOUND);
-        }
-        List<Coordinates> coordinates = coordinatesRepository.findAll();
-        List<CoordinatesDTO> coordinatesDTOs = coordinates.stream()
-                .map(CoordinatesDTO::new)
-                .collect(Collectors.toList());
-        String json = getJson(coordinatesDTOs);
-        System.out.println("it's method getCoordinates");
-        return ResponseEntity.ok(json);
-    }
+//    @PreAuthorize("hasRole('ADMIN')")
+//    @GetMapping("/getAllCoordinates")
+//    public ResponseEntity<String> getALLCoordinates(
+//            @RequestHeader(HEADER_AUTH) String header
+//    ) throws JsonProcessingException {
+//        String username = getUsername(header, jwtUtil);
+//        Optional<User> userOptional = userRepository.findByUsername(username);
+//
+//        if (userOptional.isEmpty()) {
+//            return new ResponseEntity<>("User not found", HttpStatus.NOT_FOUND);
+//        }
+//        List<Coordinates> coordinates = coordinatesRepository.findAll();
+//        List<CoordinatesDTO> coordinatesDTOs = coordinates.stream()
+//                .map(CoordinatesDTO::new)
+//                .collect(Collectors.toList());
+//        String json = convertToJson(coordinatesDTOs);
+//        System.out.println("it's method getCoordinates");
+//        return ResponseEntity.ok(json);
+//    }
 
     @Transactional
     @PostMapping("/update")
@@ -91,7 +94,7 @@ public class CoordinatesController extends Controller {
             @RequestHeader(HEADER_AUTH) String header,
             @Valid @RequestBody Coordinates coordinates
     ) throws JsonProcessingException {
-        Coordinates updateCoordinates = updateEntityWithUser(
+        Coordinates updateCoordinates = service.updateEntityWithUser(
                 header,
                 coordinates,
                 coordinates.getId(),
@@ -104,9 +107,11 @@ public class CoordinatesController extends Controller {
                 },
                 coordinatesRepository
         );
-        String json = getJson(new CoordinatesDTO(updateCoordinates));
+        String json = service.convertToJson(new CoordinatesDTO(updateCoordinates));
         return ResponseEntity.ok(json);
     }
+
+
 
 
 }
