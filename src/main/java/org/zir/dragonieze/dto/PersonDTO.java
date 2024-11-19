@@ -20,6 +20,7 @@ public class PersonDTO {
     private String passportID;
     private Country nationality;
     private boolean canEdit;
+    private Long userId;
 
     public PersonDTO(Person person) {
         this.id = person.getId();
@@ -33,5 +34,6 @@ public class PersonDTO {
         this.passportID = person.getPassportID();
         this.nationality = person.getNationality();
         this.canEdit = person.getCanEdit();
+        this.userId=person.getUser().getId();
     }
 }

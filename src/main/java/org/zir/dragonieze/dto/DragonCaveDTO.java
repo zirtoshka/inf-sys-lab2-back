@@ -13,10 +13,12 @@ public class DragonCaveDTO {
     private Long id;
     private Integer numberOfTreasures;
     private boolean canEdit;
+    private Long userId;
 
     public DragonCaveDTO(DragonCave dragonCave) {
         this.id = dragonCave.getId();
         this.numberOfTreasures = dragonCave.getNumberOfTreasures();
         this.canEdit = dragonCave.getCanEdit();
+        this.userId = dragonCave.getUser().getId();
     }
 }

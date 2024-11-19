@@ -15,6 +15,7 @@ public class LocationDTO {
     private Float z;
     private String name;
     private boolean canEdit;
+    private Long userId;
 
     public LocationDTO(Location location) {
         this.id = location.getId();
@@ -23,6 +24,7 @@ public class LocationDTO {
         this.z = location.getZ();
         this.name = location.getName();
         this.canEdit = location.getCanEdit();
+        this.userId = location.getUser().getId();
     }
 
 }

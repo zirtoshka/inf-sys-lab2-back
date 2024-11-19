@@ -23,6 +23,7 @@ public class DragonDTO {
     private Color color;
     private DragonCharacter character;
     private boolean canEdit;
+    private Long userId;
 
     public DragonDTO(Dragon dragon) {
         this.id = dragon.getId();
@@ -37,6 +38,7 @@ public class DragonDTO {
         this.color = dragon.getColor();
         this.character = dragon.getCharacter();
         this.canEdit = dragon.getCanEdit();
+        this.userId = dragon.getUser().getId();
     }
 
 }
