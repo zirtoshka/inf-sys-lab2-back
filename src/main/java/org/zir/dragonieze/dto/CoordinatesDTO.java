@@ -11,14 +11,17 @@ import org.zir.dragonieze.dragon.Coordinates;
 @AllArgsConstructor
 public class CoordinatesDTO {
     private long id;
-    private double x;
-    private float y;
+    private Double x;
+    private Float y;
     private boolean canEdit;
+    private Long userId;
+
 
     public CoordinatesDTO(Coordinates coordinates) {
         this.id = coordinates.getId();
         this.x = coordinates.getX();
         this.y = coordinates.getY();
         this.canEdit = coordinates.getCanEdit();
+        this.userId = coordinates.getUser().getId();
     }
 }

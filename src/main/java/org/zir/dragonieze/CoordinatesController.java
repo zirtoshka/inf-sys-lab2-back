@@ -3,6 +3,12 @@ package org.zir.dragonieze;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
@@ -10,7 +16,8 @@ import org.zir.dragonieze.dragon.Coordinates;
 import org.zir.dragonieze.dragon.repo.CoordinatesRepository;
 import org.zir.dragonieze.dto.CoordinatesDTO;
 import org.zir.dragonieze.services.BaseService;
-
+import org.zir.dragonieze.sort.CoordinatesSort;
+import org.zir.dragonieze.sort.specifications.CoordinatesSpecifications;
 
 
 @RestController
@@ -52,45 +59,32 @@ public class CoordinatesController extends Controller {
         return ResponseEntity.ok("удалилось ура");
     }
 
-    @GetMapping("/get")
-    public ResponseEntity<String> getCoordinates(
-            @RequestHeader(HEADER_AUTH) String header
-    ) throws JsonProcessingException {
-//        String username = getUsername(header, jwtUtil);
-//        Optional<User> userOptional = userRepository.findByUsername(username);
-//
-//        if (!userOptional.isPresent()) {
-//            return new ResponseEntity<>("User not found", HttpStatus.NOT_FOUND);
-//        }
-//        User user = userOptional.get();
-//        List<Coordinates> coordinates = coordinatesRepository.findByUserId(user.getId());
-//        List<CoordinatesDTO> coordinatesDTOs = coordinates.stream()
-//                .map(CoordinatesDTO::new)
-//                .collect(Collectors.toList());
-//        String json = convertToJson(coordinatesDTOs);
-//        System.out.println("it's method getCoordinates");
-        return ResponseEntity.ok("dsds");
-    }
+    @GetMapping("/getAll")
+    public Page<CoordinatesDTO> getAllCoordinates(
+            @RequestHeader(HEADER_AUTH) String header,
+            @RequestParam(value = "offset", defaultValue = "0") @Min(0) Integer offset,
+            @RequestParam(value = "limit", defaultValue = "5") @Min(0) @Max(100) Integer limit,
+            @RequestParam(value = "sort", defaultValue = "ID_ASC") CoordinatesSort sort,
+            @RequestParam(value = "id", required = false) Long id,
+            @RequestParam(value = "x", required = false) Double x,
+            @RequestParam(value = "y", required = false) Float y,
+            @RequestParam(value = "canEdit", required = false) Boolean canEdit,
+            @RequestParam(value = "userId", required = false) Long userId
 
-//    @PreAuthorize("hasRole('ADMIN')")
-//    @GetMapping("/getAllCoordinates")
-//    public ResponseEntity<String> getALLCoordinates(
-//            @RequestHeader(HEADER_AUTH) String header
-//    ) throws JsonProcessingException {
-//        String username = getUsername(header, jwtUtil);
-//        Optional<User> userOptional = userRepository.findByUsername(username);
-//
-//        if (userOptional.isEmpty()) {
-//            return new ResponseEntity<>("User not found", HttpStatus.NOT_FOUND);
-//        }
-//        List<Coordinates> coordinates = coordinatesRepository.findAll();
-//        List<CoordinatesDTO> coordinatesDTOs = coordinates.stream()
-//                .map(CoordinatesDTO::new)
-//                .collect(Collectors.toList());
-//        String json = convertToJson(coordinatesDTOs);
-//        System.out.println("it's method getCoordinates");
-//        return ResponseEntity.ok(json);
-//    }
+    ) throws JsonProcessingException {
+        Specification<Coordinates> spec = Specification.where(
+                CoordinatesSpecifications.hasId(id)
+                        .and(CoordinatesSpecifications.hasX(x))
+                        .and(CoordinatesSpecifications.hasY(y))
+                        .and(CoordinatesSpecifications.hasCanEdit(canEdit))
+                        .and(CoordinatesSpecifications.hasUserId(userId))
+        );
+
+
+        return coordinatesRepository.findAll(spec,
+                PageRequest.of(offset, limit, sort.getSortValue())
+        ).map(CoordinatesDTO::new);
+    }
 
     @Transactional
     @PostMapping("/update")
@@ -114,8 +108,6 @@ public class CoordinatesController extends Controller {
         String json = service.convertToJson(new CoordinatesDTO(updateCoordinates));
         return ResponseEntity.ok(json);
     }
-
-
 
 
 }
