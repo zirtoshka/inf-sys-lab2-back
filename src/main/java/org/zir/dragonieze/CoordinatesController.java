@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import org.zir.dragonieze.dragon.Coordinates;
 import org.zir.dragonieze.dragon.repo.CoordinatesRepository;
 import org.zir.dragonieze.dto.CoordinatesDTO;
+import org.zir.dragonieze.log.Auditable;
 import org.zir.dragonieze.services.BaseService;
 import org.zir.dragonieze.sort.CoordinatesSort;
 import org.zir.dragonieze.sort.specifications.CoordinatesSpecifications;
@@ -45,6 +46,7 @@ public class CoordinatesController extends Controller {
 
     @Transactional
     @DeleteMapping("/delete/{id}")
+    @Auditable(action = "DELETE", entity = "Coordinates")
     public ResponseEntity<String> deleteCoordinates(
             @RequestHeader(HEADER_AUTH) String header,
             @PathVariable Long id
@@ -87,6 +89,7 @@ public class CoordinatesController extends Controller {
 
     @Transactional
     @PostMapping("/update")
+    @Auditable(action = "UPDATE", entity = "Coordinates")
     public ResponseEntity<String> updateCoordinates(
             @RequestHeader(HEADER_AUTH) String header,
             @Valid @RequestBody Coordinates coordinates
