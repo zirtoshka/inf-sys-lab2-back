@@ -39,7 +39,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/dragon/auth/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/dragon/user/*").hasAnyRole("USER", "ADMIN")
-                        .requestMatchers(HttpMethod.DELETE, "/dragon/**").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/dragon/user/").hasAnyRole("USER", "ADMIN")
                         .requestMatchers("/dragon/admin/**").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 ).cors(cors -> cors.configurationSource(corsConfigurationSource()))

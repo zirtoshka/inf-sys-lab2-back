@@ -1,6 +1,7 @@
 package org.zir.dragonieze.services;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.http.HttpStatus;
@@ -16,6 +17,7 @@ import java.util.List;
 
 @Service
 public class DragonService {
+    @Getter
     private final DragonRepository dragonRepository;
     private final CoordinatesRepository coordinatesRepository;
     private final DragonCaveRepository caveRepository;

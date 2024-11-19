@@ -7,6 +7,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.zir.dragonieze.auth.JwtUtil;
+import org.zir.dragonieze.dragon.Coordinates;
 import org.zir.dragonieze.dragon.DragonHead;
 import org.zir.dragonieze.dragon.repo.DragonHeadRepository;
 import org.zir.dragonieze.dto.DragonHeadDTO;
@@ -37,6 +38,21 @@ public class DragonHeadController extends Controller {
         DragonHead savedHead = service.saveEntityWithUser(header, head, DragonHead::setUser, headRepository);
         String json = service.convertToJson(new DragonHeadDTO(savedHead));
         return ResponseEntity.ok(json);
+    }
+
+    @Transactional
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<String> deleteHead(
+            @RequestHeader(HEADER_AUTH) String header,
+            @PathVariable Long id
+    ) throws JsonProcessingException {
+        service.deleteEntityWithCondition(
+                header,
+                id,
+                DragonHead::getUser,
+                headRepository
+        );
+        return ResponseEntity.ok("удалилось ура");
     }
 
 //    @GetMapping("/get")

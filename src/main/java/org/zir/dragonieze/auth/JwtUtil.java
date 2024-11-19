@@ -34,7 +34,6 @@ public class JwtUtil {
 
     @SneakyThrows
     public String extractUsername(String token) {
-        System.out.println("gogooggo " + token);
         return extractClaim(token, claims -> {
             try {
                 return claims.getSubject();

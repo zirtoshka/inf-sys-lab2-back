@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
+import org.zir.dragonieze.dragon.Coordinates;
 import org.zir.dragonieze.dragon.DragonCave;
 import org.zir.dragonieze.dragon.repo.DragonCaveRepository;
 import org.zir.dragonieze.dto.DragonCaveDTO;
@@ -33,6 +34,21 @@ public class DragonCaveController extends Controller {
         DragonCave savedCave = service.saveEntityWithUser(header, cave, DragonCave::setUser, caveRepository);
         String json = service.convertToJson(new DragonCaveDTO(savedCave));
         return ResponseEntity.ok(json);
+    }
+
+    @Transactional
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<String> deleteCave(
+            @RequestHeader(HEADER_AUTH) String header,
+            @PathVariable Long id
+    ) throws JsonProcessingException {
+        service.deleteEntityWithCondition(
+                header,
+                id,
+                DragonCave::getUser,
+                caveRepository
+        );
+        return ResponseEntity.ok("удалилось ура");
     }
 
     @GetMapping("/get")

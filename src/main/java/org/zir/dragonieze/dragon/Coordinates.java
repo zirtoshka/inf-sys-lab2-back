@@ -32,7 +32,7 @@ public class Coordinates implements EditableEntity{
         return canEdit;
     }
 
-    @OneToMany(mappedBy = "coordinates")
+    @OneToMany(mappedBy = "coordinates", cascade = CascadeType.ALL)
     private List<Dragon> dragons = new ArrayList<>();
 
 

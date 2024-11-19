@@ -33,6 +33,6 @@ public class DragonCave implements EditableEntity {
         return canEdit;
     }
 
-    @OneToMany(mappedBy = "cave")
+    @OneToMany(mappedBy = "cave",cascade = CascadeType.ALL)
     private List<Dragon> dragonCaves = new ArrayList<>();
 }

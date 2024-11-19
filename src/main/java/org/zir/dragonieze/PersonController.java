@@ -6,6 +6,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
+import org.zir.dragonieze.dragon.Coordinates;
 import org.zir.dragonieze.dragon.Location;
 import org.zir.dragonieze.dragon.Person;
 import org.zir.dragonieze.dragon.repo.LocationRepository;
@@ -45,6 +46,22 @@ public class PersonController extends Controller {
         Person savedPerson = service.saveEntityWithUser(header, person, Person::setUser, personRepository);
         String json = service.convertToJson(new PersonDTO(savedPerson));
         return ResponseEntity.ok(json);
+    }
+
+
+    @Transactional
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<String> deleteCoordinates(
+            @RequestHeader(HEADER_AUTH) String header,
+            @PathVariable Long id
+    ) throws JsonProcessingException {
+        service.deleteEntityWithCondition(
+                header,
+                id,
+                Person::getUser,
+                personRepository
+        );
+        return ResponseEntity.ok("удалилось ура");
     }
 
 //    @GetMapping("/get")

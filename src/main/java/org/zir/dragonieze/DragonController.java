@@ -3,6 +3,7 @@ package org.zir.dragonieze;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ser.Serializers;
 import jakarta.validation.Valid;
+import lombok.Getter;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -55,6 +56,21 @@ public class DragonController extends Controller {
     ) throws JsonProcessingException {
         String json = dragonService.addDragon(header, dragon);
         return ResponseEntity.ok(json);
+    }
+
+    @Transactional
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<String> deleteDragon(
+            @RequestHeader(HEADER_AUTH) String header,
+            @PathVariable Long id
+    ) throws JsonProcessingException {
+        service.deleteEntityWithCondition(
+                header,
+                id,
+                Dragon::getUser,
+                dragonService.getDragonRepository()
+        );
+        return ResponseEntity.ok("удалилось ура");
     }
 
 

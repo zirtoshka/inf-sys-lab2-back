@@ -6,13 +6,10 @@ import org.zir.dragonieze.admin.StatusApplication;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.zir.dragonieze.auth.JwtUtil;
 import org.zir.dragonieze.services.BaseService;
 import org.zir.dragonieze.user.User;
-import org.zir.dragonieze.user.UserRepository;
 
 import java.time.LocalDateTime;
-import java.util.Optional;
 
 @RestController
 @CrossOrigin(origins = "*")

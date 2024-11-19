@@ -20,11 +20,11 @@ public class DragonHead implements EditableEntity{
     private boolean canEdit;
 
 
-    @ManyToOne(cascade = CascadeType.ALL) // хотя бы одна у дракона
+    @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "dragon_id")
     private Dragon dragon;
 
-    @ManyToOne
+    @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 

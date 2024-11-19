@@ -1,28 +1,24 @@
 package org.zir.dragonieze;
 
-import org.zir.dragonieze.admin.AdminApplication;
-import org.zir.dragonieze.dragon.repo.AppRepository;
-import org.zir.dragonieze.admin.StatusApplication;
+
 import org.zir.dragonieze.admin.UpdateAppStatusRequest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.zir.dragonieze.auth.JwtUtil;
-import org.zir.dragonieze.user.Role;
-import org.zir.dragonieze.user.User;
-import org.zir.dragonieze.user.UserRepository;
+import org.zir.dragonieze.services.AdminService;
+import org.zir.dragonieze.services.BaseService;
+
 
 @RestController
 @CrossOrigin(origins = "*")
 @RequestMapping("/dragon/admin")
 public class AdminController extends Controller {
+    private final AdminService adminService;
 
-    private final AppRepository appRepository;
-
-    public AdminController(JwtUtil jwtUtil, UserRepository userRepository, AppRepository appRepository) {
-        super(jwtUtil, userRepository);
-        this.appRepository = appRepository;
+    public AdminController(BaseService baseService, AdminService adminService) {
+        super(baseService);
+        this.adminService = adminService;
     }
 
     @GetMapping("/hello")
@@ -38,21 +34,7 @@ public class AdminController extends Controller {
             @RequestBody UpdateAppStatusRequest request
     ) {
         try {
-            AdminApplication application = appRepository.findById(request.getId())
-                    .orElseThrow(() -> new IllegalArgumentException("Application not found"));
-            switch(request.getStatus()) {
-                case APPROVED -> {
-                    User user = application.getUser();
-                    if (!user.getRole().toString().contains("ADMIN")){
-                        user.setRole(Role.ADMIN);
-                        userRepository.save(user);
-                    }
-                    application.setStatus(StatusApplication.CLOSE);
-                }
-                case CANCELED -> application.setStatus(StatusApplication.CLOSE);
-                default -> throw new IllegalArgumentException("Invalid status value");
-            }
-            appRepository.save(application);
+            adminService.changeApplicationStatus(request);
         } catch (IllegalArgumentException e) {
             return new ResponseEntity<>(e.getLocalizedMessage(), HttpStatus.BAD_REQUEST);
         }

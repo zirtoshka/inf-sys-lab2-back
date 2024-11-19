@@ -38,14 +38,18 @@ public class CoordinatesController extends Controller {
     }
 
     @Transactional
-    @PostMapping("/delete")
+    @DeleteMapping("/delete/{id}")
     public ResponseEntity<String> deleteCoordinates(
             @RequestHeader(HEADER_AUTH) String header,
-            @Valid @RequestBody Coordinates coordinates
+            @PathVariable Long id
     ) throws JsonProcessingException {
-        Coordinates savedCoordinates = service.saveEntityWithUser(header, coordinates, Coordinates::setUser, coordinatesRepository);
-        String json = service.convertToJson(new CoordinatesDTO(savedCoordinates));
-        return ResponseEntity.ok(json);
+        service.deleteEntityWithCondition(
+                header,
+                id,
+                Coordinates::getUser,
+                coordinatesRepository
+        );
+        return ResponseEntity.ok("удалилось ура");
     }
 
     @GetMapping("/get")

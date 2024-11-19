@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.zir.dragonieze.auth.JwtUtil;
+import org.zir.dragonieze.dragon.Coordinates;
 import org.zir.dragonieze.dragon.Location;
 import org.zir.dragonieze.dragon.repo.LocationRepository;
 import org.zir.dragonieze.dto.LocationDTO;
@@ -38,6 +39,21 @@ public class LocationController extends Controller {
         Location savedLocation = service.saveEntityWithUser(header, location, Location::setUser, locationRepository);
         String json = service.convertToJson(new LocationDTO(savedLocation));
         return ResponseEntity.ok(json);
+    }
+
+    @Transactional
+    @DeleteMapping("/delete/{id}")
+    public ResponseEntity<String> deleteCoordinates(
+            @RequestHeader(HEADER_AUTH) String header,
+            @PathVariable Long id
+    ) throws JsonProcessingException {
+        service.deleteEntityWithCondition(
+                header,
+                id,
+                Location::getUser,
+                locationRepository
+        );
+        return ResponseEntity.ok("удалилось ура");
     }
 
 //    @GetMapping("/get")
