@@ -38,8 +38,8 @@ public enum DragonSort {
     CHARACTER_DESC(Sort.by(Sort.Direction.DESC, "character")),
 
 
-    HEADS_ASC(Sort.by(Sort.Direction.ASC, "heads.id")),
-    HEADS_DESC(Sort.by(Sort.Direction.DESC, "heads.id"));//todo
+    HEADS_ASC(Sort.by(Sort.Direction.ASC, "heads.size")),
+    HEADS_DESC(Sort.by(Sort.Direction.DESC, "heads.size"));//todo
 
 
 

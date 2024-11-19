@@ -98,7 +98,7 @@ public class DragonController extends Controller {
             @RequestParam(value = "age", required = false) Integer age,
             @RequestParam(value = "wingspan", required = false) long wingspan,
             @RequestParam(value = "character", required = false) DragonCharacter character,
-            @RequestParam(value = "headsCount", required = false) int countHeads
+            @RequestParam(value = "headCount", required = false) int headCount
     ){
         Specification<Dragon> specification = Specification.where(
                 DragonSpecifications.hasId(id)
@@ -113,7 +113,7 @@ public class DragonController extends Controller {
                         .and(DragonSpecifications.hasWingspan(wingspan))
                         .and(DragonSpecifications.hasCave(cavedId))
                         .and(DragonSpecifications.hasCharacter(character))
-                        .and(DragonSpecifications.hasHeads(countHeads))
+                        .and(DragonSpecifications.hasHeads(headCount))
         );
         return dragonService.getDragonRepository().findAll(
                 specification,

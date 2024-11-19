@@ -15,7 +15,7 @@ public class PersonDTO {
     private String name;
     private Color eyeColor;
     private Color hairColor;
-    private LocationDTO location;
+    private Long locationId;
     private int height;
     private String passportID;
     private Country nationality;
@@ -28,7 +28,7 @@ public class PersonDTO {
         this.eyeColor = person.getEyeColor();
         this.hairColor = person.getHairColor();
         if (person.getLocation() != null) {
-            this.location = new LocationDTO(person.getLocation());
+            this.locationId = person.getLocation().getId();
         }
         this.height = person.getHeight();
         this.passportID = person.getPassportID();

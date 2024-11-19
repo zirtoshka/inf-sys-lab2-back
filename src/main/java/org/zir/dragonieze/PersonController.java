@@ -83,7 +83,7 @@ public class PersonController extends Controller {
             @RequestParam(value = "name", required = false) String name,
             @RequestParam(value = "hairColor", required = false) Color hair,
             @RequestParam(value = "eyeColor", required = false) Color eye,
-            @RequestParam(value = "location.id", required = false) Long locationId,
+            @RequestParam(value = "locationId", required = false) Long locationId,
             @RequestParam(value = "height", required = false) int height,
             @RequestParam(value = "passportID", required = false) String passportID,
             @RequestParam(value = "nationality", required = false) Country nationality

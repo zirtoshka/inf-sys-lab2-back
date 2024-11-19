@@ -7,6 +7,11 @@ import org.zir.dragonieze.dragon.Color;
 
 import org.zir.dragonieze.dragon.Dragon;
 import org.zir.dragonieze.dragon.DragonCharacter;
+import org.zir.dragonieze.dragon.DragonHead;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Getter
 @Setter
@@ -14,24 +19,26 @@ import org.zir.dragonieze.dragon.DragonCharacter;
 public class DragonDTO {
     private long id;
     private String name;
-    private CoordinatesDTO coordinates;
+    private Long coordinatesId;
     private java.time.LocalDate creationDate;
-    private DragonCaveDTO cave;
-    private PersonDTO killer;
+    private Long caveId;
+    private Long killerId;
     private Integer age;
     private long wingspan;
     private Color color;
     private DragonCharacter character;
     private boolean canEdit;
     private Long userId;
+    private int headCount;
+    private List<Long> headIds;
 
     public DragonDTO(Dragon dragon) {
         this.id = dragon.getId();
         this.name = dragon.getName();
-        this.coordinates = new CoordinatesDTO(dragon.getCoordinates());
-        this.cave = new DragonCaveDTO(dragon.getCave());
+        this.coordinatesId = dragon.getCoordinates().getId();
+        this.caveId = dragon.getCave().getId();
         if (dragon.getKiller() != null) {
-            this.killer = new PersonDTO(dragon.getKiller());
+            this.killerId = dragon.getKiller().getId();
         }
         this.age = dragon.getAge();
         this.wingspan = dragon.getWingspan();
@@ -39,6 +46,10 @@ public class DragonDTO {
         this.character = dragon.getCharacter();
         this.canEdit = dragon.getCanEdit();
         this.userId = dragon.getUser().getId();
+        this.headCount = dragon.getHeadCount();
+        this.headIds = dragon.getHeads().stream()
+                .map(DragonHead::getId)
+                .collect(Collectors.toList());
     }
 
 }

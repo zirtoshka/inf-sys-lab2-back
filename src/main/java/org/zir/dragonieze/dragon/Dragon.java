@@ -69,4 +69,8 @@ public class Dragon implements EditableEntity{
     public boolean getCanEdit() {
         return canEdit;
     }
+
+    public int getHeadCount(){
+        return heads.size();
+    }
 }
