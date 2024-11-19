@@ -12,7 +12,7 @@ public class CoordinatesSpecifications extends DataSpecifications {
         return hasField("y", y);
     }
 
-    public static Specification<Coordinates> hasCanEdit(Boolean canEdit) {
+    public static Specification<Coordinates> hasCanEdit(boolean canEdit) {
         return hasField("canEdit", canEdit);
     }
 
