@@ -7,7 +7,6 @@ import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
@@ -59,7 +58,7 @@ public class CoordinatesController extends Controller {
         return ResponseEntity.ok("удалилось ура");
     }
 
-    @GetMapping("/getAll")
+    @GetMapping("/get")
     public Page<CoordinatesDTO> getAllCoordinates(
             @RequestHeader(HEADER_AUTH) String header,
             @RequestParam(value = "offset", defaultValue = "0") @Min(0) Integer offset,

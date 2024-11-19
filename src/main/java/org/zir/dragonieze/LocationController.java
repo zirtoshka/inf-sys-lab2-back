@@ -3,21 +3,13 @@ package org.zir.dragonieze;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import jakarta.validation.Valid;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
-import org.zir.dragonieze.auth.JwtUtil;
-import org.zir.dragonieze.dragon.Coordinates;
 import org.zir.dragonieze.dragon.Location;
 import org.zir.dragonieze.dragon.repo.LocationRepository;
 import org.zir.dragonieze.dto.LocationDTO;
 import org.zir.dragonieze.services.BaseService;
-import org.zir.dragonieze.user.User;
-import org.zir.dragonieze.user.UserRepository;
-
-import java.util.List;
-import java.util.Optional;
 
 @RestController
 @CrossOrigin(origins = "*")
