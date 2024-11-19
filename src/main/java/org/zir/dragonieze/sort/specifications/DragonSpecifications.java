@@ -4,7 +4,6 @@ import org.springframework.data.jpa.domain.Specification;
 import org.zir.dragonieze.dragon.Color;
 import org.zir.dragonieze.dragon.Dragon;
 import org.zir.dragonieze.dragon.DragonCharacter;
-import org.zir.dragonieze.dragon.Person;
 
 import java.time.LocalDate;
 
@@ -55,5 +54,9 @@ public class DragonSpecifications extends DataSpecifications {
 
     public static Specification<Dragon> hasCharacter(DragonCharacter character) {
         return hasField("character", character);
+    }
+
+    public static Specification<Dragon> hasHeads(int countHeads) {
+        return hasField("heads.len", countHeads);
     }
 }

@@ -3,7 +3,12 @@ package org.zir.dragonieze;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ser.Serializers;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import lombok.Getter;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -17,6 +22,8 @@ import org.zir.dragonieze.dragon.repo.*;
 import org.zir.dragonieze.dto.DragonDTO;
 import org.zir.dragonieze.services.BaseService;
 import org.zir.dragonieze.services.DragonService;
+import org.zir.dragonieze.sort.LocationSort;
+import org.zir.dragonieze.sort.specifications.DragonSpecifications;
 import org.zir.dragonieze.user.UserRepository;
 import org.zir.dragonieze.user.User;
 
@@ -73,26 +80,46 @@ public class DragonController extends Controller {
         return ResponseEntity.ok("удалилось ура");
     }
 
-
-//    @GetMapping("/getDragons")
-//    public ResponseEntity<String> getDragons(
-//            @RequestHeader(HEADER_AUTH) String header
-//    ) throws JsonProcessingException {
-//        String username = service.getUsername(header);
-//        Optional<User> userOptional = userRepository.findByUsername(username);
-//
-//        if (!userOptional.isPresent()) {
-//            return new ResponseEntity<>("User not found", HttpStatus.NOT_FOUND);
-//        }
-//        User user = userOptional.get();
-//        List<Dragon> dragons = dragonRepository.findByUserId(user.getId());
-//        List<DragonDTO> dragonDTOs = dragons.stream()
-//                .map(dragon -> new DragonDTO(dragon))
-//                .collect(Collectors.toList());
-//        String json = convertToJson(dragonDTOs);
-//        System.out.println("it's method getDragons");
-//        return ResponseEntity.ok(json);
-//    }
+    @GetMapping("/get")
+    public Page<DragonDTO> getDragons(
+            @RequestHeader(HEADER_AUTH) String header,
+            @RequestParam(value = "offset", defaultValue = "0") @Min(0) Integer offset,
+            @RequestParam(value = "limit", defaultValue = "5") @Min(0) @Max(100) Integer limit,
+            @RequestParam(value = "sort", defaultValue = "ID_ASC") LocationSort sort,
+            @RequestParam(value = "id", required = false) Long id,
+            @RequestParam(value = "canEdit", required = false) boolean canEdit,
+            @RequestParam(value = "userId", required = false) Long userId,
+            @RequestParam(value = "name", required = false) String name,
+            @RequestParam(value = "color", required = false) Color color,
+            @RequestParam(value = "coordinatesId", required = false) Long coordId,
+            @RequestParam(value = "creationDate", required = false) LocalDate creationDate,
+            @RequestParam(value = "caveId", required = false) Long cavedId,
+            @RequestParam(value = "killerId", required = false) Long killerId,
+            @RequestParam(value = "age", required = false) Integer age,
+            @RequestParam(value = "wingspan", required = false) long wingspan,
+            @RequestParam(value = "character", required = false) DragonCharacter character,
+            @RequestParam(value = "headsCount", required = false) int countHeads
+    ){
+        Specification<Dragon> specification = Specification.where(
+                DragonSpecifications.hasId(id)
+                        .and(DragonSpecifications.hasUserId(userId))
+                        .and(DragonSpecifications.hasName(name))
+                        .and(DragonSpecifications.hasColor(color))
+                        .and(DragonSpecifications.hasCoordinates(coordId))
+                        .and(DragonSpecifications.hasCreationDate(creationDate))
+                        .and(DragonSpecifications.hasKiller(killerId))
+                        .and(DragonSpecifications.hasAge(age))
+                        .and(DragonSpecifications.hasCanEdit(canEdit))
+                        .and(DragonSpecifications.hasWingspan(wingspan))
+                        .and(DragonSpecifications.hasCave(cavedId))
+                        .and(DragonSpecifications.hasCharacter(character))
+                        .and(DragonSpecifications.hasHeads(countHeads))
+        );
+        return dragonService.getDragonRepository().findAll(
+                specification,
+                PageRequest.of(offset,limit,sort.getSortValue())
+        ).map(DragonDTO::new);
+    }
 
 
     @Transactional

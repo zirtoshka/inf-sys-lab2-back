@@ -3,6 +3,11 @@ package org.zir.dragonieze;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
@@ -10,6 +15,9 @@ import org.zir.dragonieze.dragon.Location;
 import org.zir.dragonieze.dragon.repo.LocationRepository;
 import org.zir.dragonieze.dto.LocationDTO;
 import org.zir.dragonieze.services.BaseService;
+import org.zir.dragonieze.sort.CoordinatesSort;
+import org.zir.dragonieze.sort.LocationSort;
+import org.zir.dragonieze.sort.specifications.LocationSpecifications;
 
 @RestController
 @CrossOrigin(origins = "*")
@@ -48,24 +56,34 @@ public class LocationController extends Controller {
         return ResponseEntity.ok("удалилось ура");
     }
 
-//    @GetMapping("/get")
-//    public ResponseEntity<String> getLocations(
-//            @RequestHeader(HEADER_AUTH) String header
-//    ) throws JsonProcessingException {
-//        String username = getUsername(header, jwtUtil);
-//        Optional<User> userOptional = userRepository.findByUsername(username);
-//
-//        if (!userOptional.isPresent()) {
-//            return new ResponseEntity<>("User not found", HttpStatus.NOT_FOUND);
-//        }
-//        User user = userOptional.get();
-//        List<Location> locations = locationRepository.findByUserId(user.getId());
-//        List<LocationDTO> locationDTOS = locations.stream()
-//                .map(LocationDTO::new)
-//                .toList();
-//        String json = convertToJson(locationDTOS);
-//        return ResponseEntity.ok(json);
-//    }
+    @GetMapping("/get")
+    public Page<LocationDTO> getLocations(
+            @RequestHeader(HEADER_AUTH) String header,
+            @RequestParam(value = "offset", defaultValue = "0") @Min(0) Integer offset,
+            @RequestParam(value = "limit", defaultValue = "5") @Min(0) @Max(100) Integer limit,
+            @RequestParam(value = "sort", defaultValue = "ID_ASC") LocationSort sort,
+            @RequestParam(value = "id", required = false) Long id,
+            @RequestParam(value = "x", required = false) float x,
+            @RequestParam(value = "y", required = false) Integer y,
+            @RequestParam(value = "z", required = false) Float z,
+            @RequestParam(value = "canEdit", required = false) boolean canEdit,
+            @RequestParam(value = "userId", required = false) Long userId,
+            @RequestParam(value = "name", required = false) String name
+    ) {
+        Specification<Location> specification = Specification.where(
+                LocationSpecifications.hasId(id)
+                        .and(LocationSpecifications.hasX(x))
+                        .and(LocationSpecifications.hasY(y))
+                        .and(LocationSpecifications.hasZ(z))
+                        .and(LocationSpecifications.hasCanEdit(canEdit))
+                        .and(LocationSpecifications.hasUserId(userId))
+                        .and(LocationSpecifications.hasName(name))
+        );
+        return locationRepository.findAll(specification,
+                        PageRequest.of(offset, limit, sort.getSortValue()))
+                .map(LocationDTO::new);
+    }
+
 
     @Transactional
     @PostMapping("/update")

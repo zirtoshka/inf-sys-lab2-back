@@ -2,17 +2,24 @@ package org.zir.dragonieze;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.method.P;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
-import org.zir.dragonieze.dragon.Coordinates;
-import org.zir.dragonieze.dragon.Location;
-import org.zir.dragonieze.dragon.Person;
+import org.zir.dragonieze.dragon.*;
 import org.zir.dragonieze.dragon.repo.LocationRepository;
 import org.zir.dragonieze.dragon.repo.PersonRepository;
 import org.zir.dragonieze.dto.PersonDTO;
 import org.zir.dragonieze.services.BaseService;
+import org.zir.dragonieze.sort.LocationSort;
+import org.zir.dragonieze.sort.specifications.PersonSpecifications;
 import org.zir.dragonieze.user.User;
 
 import java.util.List;
@@ -64,24 +71,39 @@ public class PersonController extends Controller {
         return ResponseEntity.ok("удалилось ура");
     }
 
-//    @GetMapping("/get")
-//    public ResponseEntity<String> getPersons(
-//            @RequestHeader(HEADER_AUTH) String header
-//    ) throws JsonProcessingException {
-//        String username = getUsername(header, jwtUtil);
-//        Optional<User> userOptional = userRepository.findByUsername(username);
-//
-//        if (!userOptional.isPresent()) {
-//            return new ResponseEntity<>("User not found", HttpStatus.NOT_FOUND);
-//        }
-//        User user = userOptional.get();
-//        List<Person> personList = personRepository.findByUserId(user.getId());
-//        List<PersonDTO> personDTOS = personList.stream()
-//                .map(PersonDTO::new)
-//                .toList();
-//        String json = convertToJson(personDTOS);
-//        return ResponseEntity.ok(json);
-//    }
+    @GetMapping("/get")
+    public Page<PersonDTO> getPersons(
+            @RequestHeader(HEADER_AUTH) String header,
+            @RequestParam(value = "offset", defaultValue = "0") @Min(0) Integer offset,
+            @RequestParam(value = "limit", defaultValue = "5") @Min(0) @Max(100) Integer limit,
+            @RequestParam(value = "sort", defaultValue = "ID_ASC") LocationSort sort,
+            @RequestParam(value = "id", required = false) Long id,
+            @RequestParam(value = "canEdit", required = false) boolean canEdit,
+            @RequestParam(value = "userId", required = false) Long userId,
+            @RequestParam(value = "name", required = false) String name,
+            @RequestParam(value = "hairColor", required = false) Color hair,
+            @RequestParam(value = "eyeColor", required = false) Color eye,
+            @RequestParam(value = "location.id", required = false) Long locationId,
+            @RequestParam(value = "height", required = false) int height,
+            @RequestParam(value = "passportID", required = false) String passportID,
+            @RequestParam(value = "nationality", required = false) Country nationality
+    ) {
+        Specification<Person> specification = Specification.where(
+                PersonSpecifications.hasId(id)
+                        .and(PersonSpecifications.hasName(name))
+                        .and(PersonSpecifications.hasUserId(userId))
+                        .and(PersonSpecifications.hasHair(hair))
+                        .and(PersonSpecifications.hasCanEdit(canEdit))
+                        .and(PersonSpecifications.hasLocation(locationId))
+                        .and(PersonSpecifications.hasHeight(height))
+                        .and(PersonSpecifications.hasPassportID(passportID))
+                        .and(PersonSpecifications.hasNationality(nationality))
+                        .and(PersonSpecifications.hasEyes(eye))
+        );
+        return personRepository.findAll(specification,
+                        PageRequest.of(offset, limit, sort.getSortValue()))
+                .map(PersonDTO::new);
+    }
 
 
     @Transactional

@@ -35,7 +35,12 @@ public enum DragonSort {
     COLOR_DESC(Sort.by(Sort.Direction.DESC, "color")),
 
     CHARACTER_ASC(Sort.by(Sort.Direction.ASC, "character")),
-    CHARACTER_DESC(Sort.by(Sort.Direction.DESC, "character"));
+    CHARACTER_DESC(Sort.by(Sort.Direction.DESC, "character")),
+
+
+    HEADS_ASC(Sort.by(Sort.Direction.ASC, "heads.id")),
+    HEADS_DESC(Sort.by(Sort.Direction.DESC, "heads.id"));//todo
+
 
 
     private final Sort sortValue;

@@ -2,6 +2,11 @@ package org.zir.dragonieze;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
@@ -12,6 +17,8 @@ import org.zir.dragonieze.dragon.DragonHead;
 import org.zir.dragonieze.dragon.repo.DragonHeadRepository;
 import org.zir.dragonieze.dto.DragonHeadDTO;
 import org.zir.dragonieze.services.BaseService;
+import org.zir.dragonieze.sort.LocationSort;
+import org.zir.dragonieze.sort.specifications.HeadSpecifications;
 import org.zir.dragonieze.user.User;
 import org.zir.dragonieze.user.UserRepository;
 
@@ -55,24 +62,27 @@ public class DragonHeadController extends Controller {
         return ResponseEntity.ok("удалилось ура");
     }
 
-//    @GetMapping("/get")
-//    public ResponseEntity<String> getHeads(
-//            @RequestHeader(HEADER_AUTH) String header
-//    ) throws JsonProcessingException {
-//        String username = getUsername(header, jwtUtil);
-//        Optional<User> userOptional = userRepository.findByUsername(username);
-//
-//        if (!userOptional.isPresent()) {
-//            return new ResponseEntity<>("User not found", HttpStatus.NOT_FOUND);
-//        }
-//        User user = userOptional.get();
-//        List<DragonHead> heads = headRepository.findByUserId(user.getId());
-//        List<DragonHeadDTO> headDTOS = heads.stream()
-//                .map(DragonHeadDTO::new)
-//                .toList();
-//        String json = convertToJson(headDTOS);
-//        return ResponseEntity.ok(json);
-//    }
+    @GetMapping("/get")
+    public Page<DragonHeadDTO> getHeads(
+            @RequestHeader(HEADER_AUTH) String header,
+            @RequestParam(value = "offset", defaultValue = "0") @Min(0) Integer offset,
+            @RequestParam(value = "limit", defaultValue = "5") @Min(0) @Max(100) Integer limit,
+            @RequestParam(value = "sort", defaultValue = "ID_ASC") LocationSort sort,
+            @RequestParam(value = "id", required = false) Long id,
+            @RequestParam(value = "canEdit", required = false) boolean canEdit,
+            @RequestParam(value = "eyesCount", required = false) double eyesCount,
+            @RequestParam(value = "userId", required = false) Long userId
+    ) {
+        Specification<DragonHead> specification = Specification.where(
+                HeadSpecifications.hasId(id)
+                        .and(HeadSpecifications.hasCanEdit(canEdit))
+                        .and(HeadSpecifications.hasEyes(eyesCount))
+                        .and(HeadSpecifications.hasUserId(userId))
+        );
+        return headRepository.findAll(specification,
+                        PageRequest.of(offset, limit, sort.getSortValue()))
+                .map(DragonHeadDTO::new);
+    }
 
 
     @Transactional
