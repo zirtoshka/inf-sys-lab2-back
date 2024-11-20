@@ -1,4 +1,4 @@
-package org.zir.dragonieze;
+package org.zir.dragonieze.controllers;
 
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -15,7 +15,6 @@ import org.zir.dragonieze.dragon.Location;
 import org.zir.dragonieze.dragon.repo.LocationRepository;
 import org.zir.dragonieze.dto.LocationDTO;
 import org.zir.dragonieze.services.BaseService;
-import org.zir.dragonieze.sort.CoordinatesSort;
 import org.zir.dragonieze.sort.LocationSort;
 import org.zir.dragonieze.sort.specifications.LocationSpecifications;
 

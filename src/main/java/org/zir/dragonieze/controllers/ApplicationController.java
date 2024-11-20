@@ -1,4 +1,4 @@
-package org.zir.dragonieze;
+package org.zir.dragonieze.controllers;
 
 import org.zir.dragonieze.admin.AdminApplication;
 import org.zir.dragonieze.dragon.repo.AppRepository;

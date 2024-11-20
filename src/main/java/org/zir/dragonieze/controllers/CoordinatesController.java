@@ -1,4 +1,4 @@
-package org.zir.dragonieze;
+package org.zir.dragonieze.controllers;
 
 
 import com.fasterxml.jackson.core.JsonProcessingException;

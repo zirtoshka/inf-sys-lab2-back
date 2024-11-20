@@ -15,7 +15,7 @@ public class DataSpecifications {
 
     public static <T> Path<?> getPath(Root<T> root, String fieldName) {
         if (fieldName.contains(".")) {
-            String[] parts = fieldName.split("\\.");     //user.id
+            String[] parts = fieldName.split("\\.");     //ex: user.id
             Path<?> path = root.get(parts[0]);
             for (int i = 1; i < parts.length; i++) {
                 path = path.get(parts[i]);

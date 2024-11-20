@@ -1,4 +1,4 @@
-package org.zir.dragonieze;
+package org.zir.dragonieze.controllers;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import jakarta.validation.Valid;
@@ -7,23 +7,15 @@ import jakarta.validation.constraints.Min;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
-import org.zir.dragonieze.auth.JwtUtil;
-import org.zir.dragonieze.dragon.Coordinates;
 import org.zir.dragonieze.dragon.DragonHead;
 import org.zir.dragonieze.dragon.repo.DragonHeadRepository;
 import org.zir.dragonieze.dto.DragonHeadDTO;
 import org.zir.dragonieze.services.BaseService;
 import org.zir.dragonieze.sort.LocationSort;
 import org.zir.dragonieze.sort.specifications.HeadSpecifications;
-import org.zir.dragonieze.user.User;
-import org.zir.dragonieze.user.UserRepository;
-
-import java.util.List;
-import java.util.Optional;
 
 @RestController
 @CrossOrigin(origins = "*")

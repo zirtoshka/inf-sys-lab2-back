@@ -2,7 +2,6 @@ package org.zir.dragonieze.log;
 
 import jakarta.persistence.*;
 import lombok.*;
-import org.hibernate.annotations.Type;
 
 import java.time.LocalDateTime;
 

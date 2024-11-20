@@ -1,38 +1,26 @@
-package org.zir.dragonieze;
+package org.zir.dragonieze.controllers;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ser.Serializers;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
-import lombok.Getter;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.server.ResponseStatusException;
-import org.zir.dragonieze.auth.JwtUtil;
 import org.zir.dragonieze.dragon.*;
-import org.zir.dragonieze.dragon.repo.*;
 import org.zir.dragonieze.dto.DragonDTO;
 import org.zir.dragonieze.services.BaseService;
 import org.zir.dragonieze.services.DragonService;
 import org.zir.dragonieze.sort.LocationSort;
 import org.zir.dragonieze.sort.specifications.DragonSpecifications;
-import org.zir.dragonieze.user.UserRepository;
-import org.zir.dragonieze.user.User;
 
 
 import java.time.LocalDate;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
 
 @RestController
 @CrossOrigin(origins = "*")

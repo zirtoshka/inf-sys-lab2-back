@@ -1,6 +1,5 @@
 package org.zir.dragonieze.sort.specifications;
 
-import jakarta.persistence.criteria.CriteriaBuilder;
 import org.springframework.data.jpa.domain.Specification;
 import org.zir.dragonieze.dragon.DragonCave;
 

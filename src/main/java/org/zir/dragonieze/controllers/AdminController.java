@@ -1,4 +1,4 @@
-package org.zir.dragonieze;
+package org.zir.dragonieze.controllers;
 
 
 import org.zir.dragonieze.admin.UpdateAppStatusRequest;
