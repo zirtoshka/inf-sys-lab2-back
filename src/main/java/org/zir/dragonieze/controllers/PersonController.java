@@ -14,6 +14,7 @@ import org.zir.dragonieze.dragon.*;
 import org.zir.dragonieze.dragon.repo.LocationRepository;
 import org.zir.dragonieze.dragon.repo.PersonRepository;
 import org.zir.dragonieze.dto.PersonDTO;
+import org.zir.dragonieze.log.Auditable;
 import org.zir.dragonieze.services.BaseService;
 import org.zir.dragonieze.sort.LocationSort;
 import org.zir.dragonieze.sort.specifications.PersonSpecifications;
@@ -51,10 +52,11 @@ public class PersonController extends Controller {
 
     @Transactional
     @DeleteMapping("/delete/{id}")
-    public ResponseEntity<String> deleteCoordinates(
+    @Auditable(action = "DELETE", entity = "Person")
+    public ResponseEntity<String> deletePerson(
             @RequestHeader(HEADER_AUTH) String header,
             @PathVariable Long id
-    ) throws JsonProcessingException {
+    ) {
         service.deleteEntityWithCondition(
                 header,
                 id,
@@ -101,6 +103,7 @@ public class PersonController extends Controller {
 
     @Transactional
     @PostMapping("/update")
+    @Auditable(action = "UPDATE", entity = "Person")
     public ResponseEntity<String> updatePerson(
             @RequestHeader(HEADER_AUTH) String header,
             @Valid @RequestBody Person person

@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import org.zir.dragonieze.dragon.Location;
 import org.zir.dragonieze.dragon.repo.LocationRepository;
 import org.zir.dragonieze.dto.LocationDTO;
+import org.zir.dragonieze.log.Auditable;
 import org.zir.dragonieze.services.BaseService;
 import org.zir.dragonieze.sort.LocationSort;
 import org.zir.dragonieze.sort.specifications.LocationSpecifications;
@@ -42,10 +43,11 @@ public class LocationController extends Controller {
 
     @Transactional
     @DeleteMapping("/delete/{id}")
-    public ResponseEntity<String> deleteCoordinates(
+    @Auditable(action = "DELETE", entity = "Location")
+    public ResponseEntity<String> deleteLocation(
             @RequestHeader(HEADER_AUTH) String header,
             @PathVariable Long id
-    ) throws JsonProcessingException {
+    ) {
         service.deleteEntityWithCondition(
                 header,
                 id,
@@ -86,6 +88,7 @@ public class LocationController extends Controller {
 
     @Transactional
     @PostMapping("/update")
+    @Auditable(action = "UPDATE", entity = "Location")
     public ResponseEntity<String> updateLocation(
             @RequestHeader(HEADER_AUTH) String header,
             @Valid @RequestBody Location location

@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.zir.dragonieze.dragon.*;
 import org.zir.dragonieze.dto.DragonDTO;
+import org.zir.dragonieze.log.Auditable;
 import org.zir.dragonieze.services.BaseService;
 import org.zir.dragonieze.services.DragonService;
 import org.zir.dragonieze.sort.LocationSort;
@@ -45,6 +46,7 @@ public class DragonController extends Controller {
 
     @Transactional
     @PostMapping("/add")
+    @Auditable(action="DELETE", entity = "Dragon")
     public ResponseEntity<String> addDragon(
             @RequestHeader(HEADER_AUTH) String header,
             @Valid @RequestBody Dragon dragon
@@ -55,10 +57,11 @@ public class DragonController extends Controller {
 
     @Transactional
     @DeleteMapping("/delete/{id}")
+    @Auditable(action="DELETE", entity = "Dragon")
     public ResponseEntity<String> deleteDragon(
             @RequestHeader(HEADER_AUTH) String header,
             @PathVariable Long id
-    ) throws JsonProcessingException {
+    ) {
         service.deleteEntityWithCondition(
                 header,
                 id,
@@ -112,11 +115,11 @@ public class DragonController extends Controller {
 
     @Transactional
     @PostMapping("/update")
+    @Auditable(action="UPDATE", entity = "Dragon")
     public ResponseEntity<String> updateDragon(
             @RequestHeader(HEADER_AUTH) String header,
             @Valid @RequestBody Dragon dragon
     ) throws JsonProcessingException {
-        System.out.println("dsfsf");
         String json = dragonService.updateDragon(header, dragon);
         return ResponseEntity.ok(json);
     }

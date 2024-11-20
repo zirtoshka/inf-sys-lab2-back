@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.*;
 import org.zir.dragonieze.dragon.DragonCave;
 import org.zir.dragonieze.dragon.repo.DragonCaveRepository;
 import org.zir.dragonieze.dto.DragonCaveDTO;
+import org.zir.dragonieze.log.Auditable;
 import org.zir.dragonieze.services.BaseService;
 import org.zir.dragonieze.sort.LocationSort;
 import org.zir.dragonieze.sort.specifications.CaveSpecifications;
@@ -44,10 +45,11 @@ public class DragonCaveController extends Controller {
 
     @Transactional
     @DeleteMapping("/delete/{id}")
+    @Auditable(action="DELETE", entity = "DragonCave")
     public ResponseEntity<String> deleteCave(
             @RequestHeader(HEADER_AUTH) String header,
             @PathVariable Long id
-    ) throws JsonProcessingException {
+    ) {
         service.deleteEntityWithCondition(
                 header,
                 id,
@@ -84,6 +86,7 @@ public class DragonCaveController extends Controller {
 
     @Transactional
     @PostMapping("/update")
+    @Auditable(action="UPDATE", entity = "Dragon")
     public ResponseEntity<String> updateCave(
             @RequestHeader(HEADER_AUTH) String header,
             @Valid @RequestBody DragonCave cave

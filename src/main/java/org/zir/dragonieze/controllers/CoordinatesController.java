@@ -50,7 +50,7 @@ public class CoordinatesController extends Controller {
     public ResponseEntity<String> deleteCoordinates(
             @RequestHeader(HEADER_AUTH) String header,
             @PathVariable Long id
-    ) throws JsonProcessingException {
+    ) {
         service.deleteEntityWithCondition(
                 header,
                 id,
@@ -72,7 +72,7 @@ public class CoordinatesController extends Controller {
             @RequestParam(value = "canEdit", required = false) boolean canEdit,
             @RequestParam(value = "userId", required = false) Long userId
 
-    ) throws JsonProcessingException {
+    ) {
         Specification<Coordinates> spec = Specification.where(
                 CoordinatesSpecifications.hasId(id)
                         .and(CoordinatesSpecifications.hasX(x))

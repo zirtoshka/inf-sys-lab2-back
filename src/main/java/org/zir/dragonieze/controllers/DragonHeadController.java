@@ -13,6 +13,7 @@ import org.springframework.web.bind.annotation.*;
 import org.zir.dragonieze.dragon.DragonHead;
 import org.zir.dragonieze.dragon.repo.DragonHeadRepository;
 import org.zir.dragonieze.dto.DragonHeadDTO;
+import org.zir.dragonieze.log.Auditable;
 import org.zir.dragonieze.services.BaseService;
 import org.zir.dragonieze.sort.LocationSort;
 import org.zir.dragonieze.sort.specifications.HeadSpecifications;
@@ -41,10 +42,11 @@ public class DragonHeadController extends Controller {
 
     @Transactional
     @DeleteMapping("/delete/{id}")
+    @Auditable(action = "DELETE", entity = "DragonHead")
     public ResponseEntity<String> deleteHead(
             @RequestHeader(HEADER_AUTH) String header,
             @PathVariable Long id
-    ) throws JsonProcessingException {
+    ) {
         service.deleteEntityWithCondition(
                 header,
                 id,
@@ -79,6 +81,7 @@ public class DragonHeadController extends Controller {
 
     @Transactional
     @PostMapping("/update")
+    @Auditable(action = "UPDATE", entity = "DragonHead")
     public ResponseEntity<String> updateHead(
             @RequestHeader(HEADER_AUTH) String header,
             @Valid @RequestBody DragonHead head
