@@ -49,7 +49,7 @@ public class DragonCaveController extends Controller {
 
     @Transactional
     @DeleteMapping("/delete/{id}")
-    @Auditable(action="DELETE", entity = "DragonCave")
+    @Auditable(action = "DELETE", entity = "DragonCave")
     public ResponseEntity<String> deleteCave(
             @RequestHeader(HEADER_AUTH) String header,
             @PathVariable Long id
@@ -72,16 +72,19 @@ public class DragonCaveController extends Controller {
             @RequestParam(value = "limit", defaultValue = "5") @Min(0) @Max(100) Integer limit,
             @RequestParam(value = "sort", defaultValue = "ID_ASC") LocationSort sort,
             @RequestParam(value = "id", required = false) Long id,
-            @RequestParam(value = "canEdit", required = false) boolean canEdit,
+            @RequestParam(value = "canEdit", required = false) Boolean canEdit,
             @RequestParam(value = "userId", required = false) Long userId,
             @RequestParam(value = "numberOfTreasures", required = false) Integer treasure
     ) {
         Specification<DragonCave> specification = Specification.where(
                 CaveSpecifications.hasId(id)
-                        .and(CaveSpecifications.hasCanEdit(canEdit))
                         .and(CaveSpecifications.hasUserId(userId))
                         .and(CaveSpecifications.hasTreasures(treasure))
         );
+        if (canEdit != null) {
+            specification = specification.and(CaveSpecifications.hasCanEdit(canEdit));
+        }
+
         return caveRepository.findAll(
                 specification,
                 PageRequest.of(offset, limit, sort.getSortValue())
@@ -92,7 +95,7 @@ public class DragonCaveController extends Controller {
 
     @Transactional
     @PostMapping("/update")
-    @Auditable(action="UPDATE", entity = "Dragon")
+    @Auditable(action = "UPDATE", entity = "Dragon")
     public ResponseEntity<String> updateCave(
             @RequestHeader(HEADER_AUTH) String header,
             @Valid @RequestBody DragonCave cave
