@@ -4,6 +4,8 @@ import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import org.jose4j.lang.JoseException;
 import org.springframework.http.HttpStatus;
+import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
@@ -25,6 +27,11 @@ public class AuthController {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
+    @MessageMapping("/update") // Клиент отправляет сообщение на "/app/update"
+    @SendTo("/topic/updates") // Сообщение транслируется всем, кто подписан на "/topic/updates"
+    public String sendNotification(String message) {
+        return message; // Например, строка JSON-данных об изменении
+    }
 
     @PostMapping("/authenticate")
     public AuthResponse authenticate(@RequestBody AuthRequest authRequest) throws JoseException {

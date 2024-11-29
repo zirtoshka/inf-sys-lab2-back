@@ -8,6 +8,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
@@ -26,10 +27,12 @@ import org.zir.dragonieze.sort.specifications.CaveSpecifications;
 
 public class DragonCaveController extends Controller {
     private final DragonCaveRepository caveRepository;
+    private final SimpMessagingTemplate messagingTemplate;
 
-    public DragonCaveController(BaseService baseService, DragonCaveRepository caveRepository) {
+    public DragonCaveController(BaseService baseService, DragonCaveRepository caveRepository, SimpMessagingTemplate messagingTemplate) {
         super(baseService);
         this.caveRepository = caveRepository;
+        this.messagingTemplate = messagingTemplate;
     }
 
     @Transactional
@@ -39,6 +42,7 @@ public class DragonCaveController extends Controller {
             @Valid @RequestBody DragonCave cave
     ) throws JsonProcessingException {
         DragonCave savedCave = service.saveEntityWithUser(header, cave, DragonCave::setUser, caveRepository);
+        messagingTemplate.convertAndSend("/topic/caves", new DragonCaveDTO(savedCave)); // Отправляем сообщение всем клиентам
         String json = service.convertToJson(new DragonCaveDTO(savedCave));
         return ResponseEntity.ok(json);
     }
@@ -56,6 +60,8 @@ public class DragonCaveController extends Controller {
                 DragonCave::getUser,
                 caveRepository
         );
+        messagingTemplate.convertAndSend("/topic/caves", id); // Отправляем id удалённой пещеры
+
         return ResponseEntity.ok("удалилось ура");
     }
 

@@ -35,13 +35,14 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
-                .csrf(csrf -> csrf.ignoringRequestMatchers("/dragon/**"))
+                .csrf(csrf -> csrf.ignoringRequestMatchers("/dragon/**", "/ws/**"))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/dragon/auth/**").permitAll()
                         .requestMatchers(HttpMethod.POST, "/dragon/user/*").hasAnyRole("USER", "ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/dragon/user/").hasAnyRole("USER", "ADMIN")
                         .requestMatchers(HttpMethod.GET, "/dragon/user/").hasAnyRole("USER", "ADMIN")
                         .requestMatchers("/dragon/admin/**").hasRole("ADMIN")
+                        .requestMatchers("/ws/**").permitAll()
                         .anyRequest().authenticated()
                 ).cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))

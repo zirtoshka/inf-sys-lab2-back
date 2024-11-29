@@ -9,6 +9,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.zir.dragonieze.dragon.Coordinates;
@@ -25,11 +26,14 @@ import org.zir.dragonieze.sort.specifications.CoordinatesSpecifications;
 @RequestMapping("/dragon/user/coord")
 public class CoordinatesController extends Controller {
     private final CoordinatesRepository coordinatesRepository;
+    private final SimpMessagingTemplate messagingTemplate;
+
 
     public CoordinatesController(CoordinatesRepository coordinatesRepository,
-                                 BaseService service) {
+                                 BaseService service, SimpMessagingTemplate messagingTemplate) {
         super(service);
         this.coordinatesRepository = coordinatesRepository;
+        this.messagingTemplate = messagingTemplate;
     }
 
 
@@ -41,6 +45,9 @@ public class CoordinatesController extends Controller {
     ) throws JsonProcessingException {
         Coordinates savedCoordinates = service.saveEntityWithUser(header, coordinates, Coordinates::setUser, coordinatesRepository);
         String json = service.convertToJson(new CoordinatesDTO(savedCoordinates));
+
+        messagingTemplate.convertAndSend("/topic/updates", new CoordinatesDTO(savedCoordinates)); //todo
+
         return ResponseEntity.ok(json);
     }
 
@@ -57,6 +64,9 @@ public class CoordinatesController extends Controller {
                 Coordinates::getUser,
                 coordinatesRepository
         );
+
+        messagingTemplate.convertAndSend("/topic/updates", "Deleted: " + id);
+
         return ResponseEntity.ok("удалилось ура");
     }
 
