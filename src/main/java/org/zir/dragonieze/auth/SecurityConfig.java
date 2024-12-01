@@ -38,7 +38,7 @@ public class SecurityConfig {
                 .csrf(csrf -> csrf.ignoringRequestMatchers("/dragon/**", "/ws/**"))
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/dragon/auth/**").permitAll()
-                        .requestMatchers(HttpMethod.POST, "/dragon/user/*").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/dragon/user/").hasAnyRole("USER", "ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/dragon/user/").hasAnyRole("USER", "ADMIN")
                         .requestMatchers(HttpMethod.GET, "/dragon/user/").hasAnyRole("USER", "ADMIN")
                         .requestMatchers("/dragon/admin/**").hasRole("ADMIN")

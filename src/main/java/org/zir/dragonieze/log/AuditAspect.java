@@ -41,7 +41,6 @@ public class AuditAspect {
                     header = (String) arg;
                 }
             }
-
             if (header != null) {
                 auditLogService.logAction(
                         header,
@@ -60,6 +59,7 @@ public class AuditAspect {
 
     private Long getIdFromEntity(Object entity) {
         try {
+
             return (Long) entity.getClass().getMethod("getId").invoke(entity);
         } catch (Exception e) {
             log.error("Error when getting the entity ID", e);

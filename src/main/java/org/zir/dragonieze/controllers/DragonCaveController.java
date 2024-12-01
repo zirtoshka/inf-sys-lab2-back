@@ -103,7 +103,7 @@ public class DragonCaveController extends Controller {
 
     @Transactional
     @PostMapping("/update")
-    @Auditable(action = "UPDATE", entity = "Dragon")
+    @Auditable(action = "UPDATE", entity = "DragonCave")
     public ResponseEntity<String> updateCave(
             @RequestHeader(HEADER_AUTH) String header,
             @Valid @RequestBody DragonCave cave
