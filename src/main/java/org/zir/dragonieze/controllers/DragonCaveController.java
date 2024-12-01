@@ -20,6 +20,8 @@ import org.zir.dragonieze.services.BaseService;
 import org.zir.dragonieze.sort.LocationSort;
 import org.zir.dragonieze.sort.specifications.CaveSpecifications;
 
+import java.util.Map;
+
 
 @RestController
 @RequestMapping("/dragon/user/cave")
@@ -42,7 +44,10 @@ public class DragonCaveController extends Controller {
             @Valid @RequestBody DragonCave cave
     ) throws JsonProcessingException {
         DragonCave savedCave = service.saveEntityWithUser(header, cave, DragonCave::setUser, caveRepository);
-        messagingTemplate.convertAndSend("/topic/caves", new DragonCaveDTO(savedCave)); // Отправляем сообщение всем клиентам
+        messagingTemplate.convertAndSend("/topic/caves", Map.of(
+                "action", "ADD",
+                "cave", new DragonCaveDTO(savedCave))
+        );
         String json = service.convertToJson(new DragonCaveDTO(savedCave));
         return ResponseEntity.ok(json);
     }
@@ -60,7 +65,10 @@ public class DragonCaveController extends Controller {
                 DragonCave::getUser,
                 caveRepository
         );
-        messagingTemplate.convertAndSend("/topic/caves", id); // Отправляем id удалённой пещеры
+        messagingTemplate.convertAndSend("/topic/caves", Map.of(
+                "action", "DELETE",
+                "id", id
+        ));
 
         return ResponseEntity.ok("удалилось ура");
     }
@@ -72,7 +80,7 @@ public class DragonCaveController extends Controller {
             @RequestParam(value = "limit", defaultValue = "5") @Min(0) @Max(100) Integer limit,
             @RequestParam(value = "sort", defaultValue = "ID_ASC") LocationSort sort,
             @RequestParam(value = "id", required = false) Long id,
-            @RequestParam(value = "canEdit", required = false) Boolean canEdit,
+            @RequestParam(value = "canEdit", required = false) Boolean canEdit, //todo
             @RequestParam(value = "userId", required = false) Long userId,
             @RequestParam(value = "numberOfTreasures", required = false) Integer treasure
     ) {
@@ -111,6 +119,10 @@ public class DragonCaveController extends Controller {
                     old.setCanEdit(updates.getCanEdit());
                 },
                 caveRepository
+        );
+        messagingTemplate.convertAndSend("/topic/caves", Map.of(
+                "action", "UPDATE",
+                "cave", new DragonCaveDTO(updatedCave))
         );
         String json = service.convertToJson(new DragonCaveDTO(updatedCave));
         return ResponseEntity.ok(json);
