@@ -10,6 +10,7 @@ import org.zir.dragonieze.user.Role;
 import org.zir.dragonieze.user.User;
 import org.zir.dragonieze.user.UserRepository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Configuration
@@ -22,8 +23,8 @@ public class AdminInitializer {
     @Bean
     public ApplicationRunner initAdmin(UserRepository userRepository, PasswordEncoder passwordEncoder) {
         return args -> {
-            Optional<User> admin = userRepository.findByRole(Role.ADMIN);
-            if (admin.isEmpty()) {
+            List<User> admins = userRepository.findAllByRole(Role.ADMIN);
+            if (admins.isEmpty()) {
                 User newAdmin = User.builder()
                         .username(adminUsername)
                         .password(passwordEncoder.encode(adminPassword))

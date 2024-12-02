@@ -41,6 +41,8 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/dragon/user/").hasAnyRole("USER", "ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/dragon/user/").hasAnyRole("USER", "ADMIN")
                         .requestMatchers(HttpMethod.GET, "/dragon/user/").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers(HttpMethod.GET, "/dragon/app/").hasAnyRole("USER", "ADMIN")
+                        .requestMatchers(HttpMethod.POST, "/dragon/app/").hasAnyRole("USER", "ADMIN")
                         .requestMatchers("/dragon/admin/**").hasRole("ADMIN")
                         .requestMatchers("/ws/**").permitAll()
                         .anyRequest().authenticated()

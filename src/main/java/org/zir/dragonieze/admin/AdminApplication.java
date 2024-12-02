@@ -2,10 +2,7 @@ package org.zir.dragonieze.admin;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import org.zir.dragonieze.user.User;
 
 import java.time.LocalDateTime;
@@ -15,6 +12,7 @@ import java.time.LocalDateTime;
 @Entity
 @Setter
 @Getter
+@Builder
 public class AdminApplication {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
