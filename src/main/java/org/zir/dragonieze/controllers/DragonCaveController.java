@@ -17,6 +17,7 @@ import org.zir.dragonieze.dragon.repo.DragonCaveRepository;
 import org.zir.dragonieze.dto.DragonCaveDTO;
 import org.zir.dragonieze.log.Auditable;
 import org.zir.dragonieze.services.BaseService;
+import org.zir.dragonieze.sort.CaveSort;
 import org.zir.dragonieze.sort.LocationSort;
 import org.zir.dragonieze.sort.specifications.CaveSpecifications;
 
@@ -78,7 +79,7 @@ public class DragonCaveController extends Controller {
             @RequestHeader(HEADER_AUTH) String header,
             @RequestParam(value = "offset", defaultValue = "0") @Min(0) Integer offset,
             @RequestParam(value = "limit", defaultValue = "5") @Min(0) @Max(100) Integer limit,
-            @RequestParam(value = "sort", defaultValue = "ID_ASC") LocationSort sort,
+            @RequestParam(value = "sort", defaultValue = "ID_ASC") CaveSort sort,
             @RequestParam(value = "id", required = false) Long id,
             @RequestParam(value = "canEdit", required = false) Boolean canEdit, //todo
             @RequestParam(value = "userId", required = false) Long userId,

@@ -79,7 +79,7 @@ public class CoordinatesController extends Controller {
             @RequestParam(value = "id", required = false) Long id,
             @RequestParam(value = "x", required = false) Double x,
             @RequestParam(value = "y", required = false) Float y,
-            @RequestParam(value = "canEdit", required = false) boolean canEdit,
+            @RequestParam(value = "canEdit", required = false) Boolean canEdit,
             @RequestParam(value = "userId", required = false) Long userId
 
     ) {

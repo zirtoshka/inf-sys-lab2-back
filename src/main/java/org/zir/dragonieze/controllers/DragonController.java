@@ -17,6 +17,7 @@ import org.zir.dragonieze.dto.DragonDTO;
 import org.zir.dragonieze.log.Auditable;
 import org.zir.dragonieze.services.BaseService;
 import org.zir.dragonieze.services.DragonService;
+import org.zir.dragonieze.sort.DragonSort;
 import org.zir.dragonieze.sort.LocationSort;
 import org.zir.dragonieze.sort.specifications.DragonSpecifications;
 
@@ -76,9 +77,9 @@ public class DragonController extends Controller {
             @RequestHeader(HEADER_AUTH) String header,
             @RequestParam(value = "offset", defaultValue = "0") @Min(0) Integer offset,
             @RequestParam(value = "limit", defaultValue = "5") @Min(0) @Max(100) Integer limit,
-            @RequestParam(value = "sort", defaultValue = "ID_ASC") LocationSort sort,
+            @RequestParam(value = "sort", defaultValue = "ID_ASC") DragonSort sort,
             @RequestParam(value = "id", required = false) Long id,
-            @RequestParam(value = "canEdit", required = false) boolean canEdit,
+            @RequestParam(value = "canEdit", required = false) Boolean canEdit,
             @RequestParam(value = "userId", required = false) Long userId,
             @RequestParam(value = "name", required = false) String name,
             @RequestParam(value = "color", required = false) Color color,

@@ -67,7 +67,7 @@ public class LocationController extends Controller {
             @RequestParam(value = "x", required = false) float x,
             @RequestParam(value = "y", required = false) Integer y,
             @RequestParam(value = "z", required = false) Float z,
-            @RequestParam(value = "canEdit", required = false) boolean canEdit,
+            @RequestParam(value = "canEdit", required = false) Boolean canEdit,
             @RequestParam(value = "userId", required = false) Long userId,
             @RequestParam(value = "name", required = false) String name
     ) {

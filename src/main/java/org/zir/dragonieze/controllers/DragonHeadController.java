@@ -15,6 +15,7 @@ import org.zir.dragonieze.dragon.repo.DragonHeadRepository;
 import org.zir.dragonieze.dto.DragonHeadDTO;
 import org.zir.dragonieze.log.Auditable;
 import org.zir.dragonieze.services.BaseService;
+import org.zir.dragonieze.sort.HeadSort;
 import org.zir.dragonieze.sort.LocationSort;
 import org.zir.dragonieze.sort.specifications.HeadSpecifications;
 
@@ -61,9 +62,9 @@ public class DragonHeadController extends Controller {
             @RequestHeader(HEADER_AUTH) String header,
             @RequestParam(value = "offset", defaultValue = "0") @Min(0) Integer offset,
             @RequestParam(value = "limit", defaultValue = "5") @Min(0) @Max(100) Integer limit,
-            @RequestParam(value = "sort", defaultValue = "ID_ASC") LocationSort sort,
+            @RequestParam(value = "sort", defaultValue = "ID_ASC") HeadSort sort,
             @RequestParam(value = "id", required = false) Long id,
-            @RequestParam(value = "canEdit", required = false) boolean canEdit,
+            @RequestParam(value = "canEdit", required = false) Boolean canEdit,
             @RequestParam(value = "eyesCount", required = false) double eyesCount,
             @RequestParam(value = "userId", required = false) Long userId
     ) {

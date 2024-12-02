@@ -17,6 +17,7 @@ import org.zir.dragonieze.dto.PersonDTO;
 import org.zir.dragonieze.log.Auditable;
 import org.zir.dragonieze.services.BaseService;
 import org.zir.dragonieze.sort.LocationSort;
+import org.zir.dragonieze.sort.PersonSort;
 import org.zir.dragonieze.sort.specifications.PersonSpecifications;
 
 @RestController
@@ -71,9 +72,9 @@ public class PersonController extends Controller {
             @RequestHeader(HEADER_AUTH) String header,
             @RequestParam(value = "offset", defaultValue = "0") @Min(0) Integer offset,
             @RequestParam(value = "limit", defaultValue = "5") @Min(0) @Max(100) Integer limit,
-            @RequestParam(value = "sort", defaultValue = "ID_ASC") LocationSort sort,
+            @RequestParam(value = "sort", defaultValue = "ID_ASC") PersonSort sort,
             @RequestParam(value = "id", required = false) Long id,
-            @RequestParam(value = "canEdit", required = false) boolean canEdit,
+            @RequestParam(value = "canEdit", required = false) Boolean canEdit,
             @RequestParam(value = "userId", required = false) Long userId,
             @RequestParam(value = "name", required = false) String name,
             @RequestParam(value = "hairColor", required = false) Color hair,
