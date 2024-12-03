@@ -71,6 +71,10 @@ public class ApplicationController extends Controller {
     ) {
         try {
             adminService.changeApplicationStatus(request);
+            messagingTemplate.convertAndSend("/topic/application", Map.of(
+                    "action", "UPDATE",
+                    "application", new ApplicationDTO(appRepository.findById(request.getId()).get()))
+            );
         } catch (IllegalArgumentException e) {
             return new ResponseEntity<>(e.getLocalizedMessage(), HttpStatus.BAD_REQUEST);
         }
