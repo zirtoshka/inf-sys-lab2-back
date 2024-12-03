@@ -54,7 +54,7 @@ public class DragonController extends Controller {
             @Valid @RequestBody Dragon dragon
     ) throws JsonProcessingException {
         DragonDTO dragonDTO = dragonService.addDragon(header, dragon);
-        messagingTemplate.convertAndSend("/topic/", Map.of(
+        messagingTemplate.convertAndSend("/topic/dragons", Map.of(
                 "action", "ADD",
                 "data", dragonDTO
         ));
@@ -75,7 +75,7 @@ public class DragonController extends Controller {
                 Dragon::getUser,
                 dragonService.getDragonRepository()
         );
-        messagingTemplate.convertAndSend("/topic/", Map.of(
+        messagingTemplate.convertAndSend("/topic/dragons", Map.of(
                 "action", "DELETE",
                 "id", id
         ));
