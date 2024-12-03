@@ -8,6 +8,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.zir.dragonieze.dragon.*;
@@ -16,19 +17,21 @@ import org.zir.dragonieze.dragon.repo.PersonRepository;
 import org.zir.dragonieze.dto.PersonDTO;
 import org.zir.dragonieze.log.Auditable;
 import org.zir.dragonieze.services.BaseService;
-import org.zir.dragonieze.sort.LocationSort;
 import org.zir.dragonieze.sort.PersonSort;
 import org.zir.dragonieze.sort.specifications.PersonSpecifications;
 
+import java.util.Map;
+
 @RestController
 @CrossOrigin(origins = "*")
-@RequestMapping("/dragon/user/person")
+@RequestMapping("/dragon/person")
 public class PersonController extends Controller {
     private final PersonRepository personRepository;
     private final LocationRepository locationRepository;
 
-    public PersonController(BaseService service, PersonRepository personRepository, LocationRepository locationRepository) {
-        super(service);
+
+    public PersonController(BaseService service, PersonRepository personRepository, LocationRepository locationRepository, SimpMessagingTemplate messagingTemplate) {
+        super(service,messagingTemplate);
         this.personRepository = personRepository;
         this.locationRepository = locationRepository;
     }
@@ -46,6 +49,10 @@ public class PersonController extends Controller {
             person.setLocation(null);
         }
         Person savedPerson = service.saveEntityWithUser(header, person, Person::setUser, personRepository);
+        messagingTemplate.convertAndSend("/topic/persons", Map.of(
+                "action", "ADD",
+                "data", new PersonDTO(savedPerson))
+                );
         String json = service.convertToJson(new PersonDTO(savedPerson));
         return ResponseEntity.ok(json);
     }
@@ -64,8 +71,13 @@ public class PersonController extends Controller {
                 Person::getUser,
                 personRepository
         );
-        return ResponseEntity.ok("удалилось ура");
-    }
+        messagingTemplate.convertAndSend("/topic/persons", Map.of(
+                "action", "DELETE",
+                "id", id
+                ));
+        return ResponseEntity.ok(
+                "'was deleted': " + id
+        );    }
 
     @GetMapping("/get")
     public Page<PersonDTO> getPersons(
@@ -127,6 +139,10 @@ public class PersonController extends Controller {
                 },
                 personRepository
         );
+        messagingTemplate.convertAndSend("/topic/persons", Map.of(
+                "action", "UPDATE",
+                "data", updatePerson)
+                );
         String json = service.convertToJson(new PersonDTO(updatePerson));
         return ResponseEntity.ok(json);
     }

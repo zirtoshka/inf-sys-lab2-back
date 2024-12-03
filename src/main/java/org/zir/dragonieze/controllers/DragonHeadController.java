@@ -8,25 +8,29 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.zir.dragonieze.dragon.DragonHead;
 import org.zir.dragonieze.dragon.repo.DragonHeadRepository;
+import org.zir.dragonieze.dto.DragonCaveDTO;
 import org.zir.dragonieze.dto.DragonHeadDTO;
 import org.zir.dragonieze.log.Auditable;
 import org.zir.dragonieze.services.BaseService;
 import org.zir.dragonieze.sort.HeadSort;
-import org.zir.dragonieze.sort.LocationSort;
 import org.zir.dragonieze.sort.specifications.HeadSpecifications;
+
+import java.util.Map;
 
 @RestController
 @CrossOrigin(origins = "*")
-@RequestMapping("/dragon/user/head")
+@RequestMapping("/dragon/head")
 public class DragonHeadController extends Controller {
     private final DragonHeadRepository headRepository;
 
-    public DragonHeadController(BaseService service, DragonHeadRepository headRepository) {
-        super(service);
+
+    public DragonHeadController(BaseService service, DragonHeadRepository headRepository, SimpMessagingTemplate messagingTemplate) {
+        super(service, messagingTemplate);
         this.headRepository = headRepository;
     }
 
@@ -37,6 +41,10 @@ public class DragonHeadController extends Controller {
             @Valid @RequestBody DragonHead head
     ) throws JsonProcessingException {
         DragonHead savedHead = service.saveEntityWithUser(header, head, DragonHead::setUser, headRepository);
+        messagingTemplate.convertAndSend("/topic/heads", Map.of(
+                "action", "ADD",
+                "data", new DragonHeadDTO(savedHead))
+        );
         String json = service.convertToJson(new DragonHeadDTO(savedHead));
         return ResponseEntity.ok(json);
     }
@@ -54,7 +62,13 @@ public class DragonHeadController extends Controller {
                 DragonHead::getUser,
                 headRepository
         );
-        return ResponseEntity.ok("удалилось ура");
+        messagingTemplate.convertAndSend("/topic/heads", Map.of(
+                "action", "DELETE",
+                "id", id)
+        );
+        return ResponseEntity.ok(
+                "'was deleted': " + id
+        );
     }
 
     @GetMapping("/get")
@@ -98,6 +112,10 @@ public class DragonHeadController extends Controller {
                     old.setCanEdit(updated.getCanEdit());
                 },
                 headRepository
+        );
+        messagingTemplate.convertAndSend("/topic/heads", Map.of(
+                "action", "UPDATE",
+                "data", new DragonHeadDTO(updateHead))
         );
         String json = service.convertToJson(new DragonHeadDTO(updateHead));
         return ResponseEntity.ok(json);

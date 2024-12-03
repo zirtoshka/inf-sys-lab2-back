@@ -3,6 +3,7 @@ package org.zir.dragonieze.controllers;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -18,10 +19,13 @@ public class Controller {
 
     protected final String HEADER_AUTH = "Authorization";
     protected final BaseService service;
+    protected final SimpMessagingTemplate messagingTemplate;
+
 
     @Autowired
-    public Controller(BaseService service) {
+    public Controller(BaseService service, SimpMessagingTemplate messagingTemplate) {
         this.service = service;
+        this.messagingTemplate = messagingTemplate;
     }
 
 

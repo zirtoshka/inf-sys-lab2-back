@@ -18,24 +18,21 @@ import org.zir.dragonieze.dto.DragonCaveDTO;
 import org.zir.dragonieze.log.Auditable;
 import org.zir.dragonieze.services.BaseService;
 import org.zir.dragonieze.sort.CaveSort;
-import org.zir.dragonieze.sort.LocationSort;
 import org.zir.dragonieze.sort.specifications.CaveSpecifications;
 
 import java.util.Map;
 
 
 @RestController
-@RequestMapping("/dragon/user/cave")
+@RequestMapping("/dragon/cave")
 @CrossOrigin(origins = "*")
 
 public class DragonCaveController extends Controller {
     private final DragonCaveRepository caveRepository;
-    private final SimpMessagingTemplate messagingTemplate;
 
     public DragonCaveController(BaseService baseService, DragonCaveRepository caveRepository, SimpMessagingTemplate messagingTemplate) {
-        super(baseService);
+        super(baseService, messagingTemplate);
         this.caveRepository = caveRepository;
-        this.messagingTemplate = messagingTemplate;
     }
 
     @Transactional
@@ -47,7 +44,7 @@ public class DragonCaveController extends Controller {
         DragonCave savedCave = service.saveEntityWithUser(header, cave, DragonCave::setUser, caveRepository);
         messagingTemplate.convertAndSend("/topic/caves", Map.of(
                 "action", "ADD",
-                "cave", new DragonCaveDTO(savedCave))
+                "data", new DragonCaveDTO(savedCave))
         );
         String json = service.convertToJson(new DragonCaveDTO(savedCave));
         return ResponseEntity.ok(json);
@@ -71,7 +68,7 @@ public class DragonCaveController extends Controller {
                 "id", id
         ));
 
-        return ResponseEntity.ok("удалилось ура");
+        return ResponseEntity.ok("'was deleted': " + id);
     }
 
     @GetMapping("/get")
@@ -123,7 +120,7 @@ public class DragonCaveController extends Controller {
         );
         messagingTemplate.convertAndSend("/topic/caves", Map.of(
                 "action", "UPDATE",
-                "cave", new DragonCaveDTO(updatedCave))
+                "data", new DragonCaveDTO(updatedCave))
         );
         String json = service.convertToJson(new DragonCaveDTO(updatedCave));
         return ResponseEntity.ok(json);

@@ -20,20 +20,20 @@ import org.zir.dragonieze.services.BaseService;
 import org.zir.dragonieze.sort.CoordinatesSort;
 import org.zir.dragonieze.sort.specifications.CoordinatesSpecifications;
 
+import java.util.Map;
+
 
 @RestController
 @CrossOrigin(origins = "*")
-@RequestMapping("/dragon/user/coord")
+@RequestMapping("/dragon/coord")
 public class CoordinatesController extends Controller {
     private final CoordinatesRepository coordinatesRepository;
-    private final SimpMessagingTemplate messagingTemplate;
 
 
     public CoordinatesController(CoordinatesRepository coordinatesRepository,
                                  BaseService service, SimpMessagingTemplate messagingTemplate) {
-        super(service);
+        super(service, messagingTemplate);
         this.coordinatesRepository = coordinatesRepository;
-        this.messagingTemplate = messagingTemplate;
     }
 
 
@@ -45,9 +45,10 @@ public class CoordinatesController extends Controller {
     ) throws JsonProcessingException {
         Coordinates savedCoordinates = service.saveEntityWithUser(header, coordinates, Coordinates::setUser, coordinatesRepository);
         String json = service.convertToJson(new CoordinatesDTO(savedCoordinates));
-
-        messagingTemplate.convertAndSend("/topic/updates", new CoordinatesDTO(savedCoordinates)); //todo
-
+        messagingTemplate.convertAndSend("/topic/coordinates", Map.of(
+                "action", "ADD",
+                "data", new CoordinatesDTO(savedCoordinates))
+        );
         return ResponseEntity.ok(json);
     }
 
@@ -65,9 +66,13 @@ public class CoordinatesController extends Controller {
                 coordinatesRepository
         );
 
-        messagingTemplate.convertAndSend("/topic/updates", "Deleted: " + id);
-
-        return ResponseEntity.ok("удалилось ура");
+        messagingTemplate.convertAndSend("/topic/coordinates", Map.of(
+                "action", "DELETE",
+                "id", id
+        ));
+        return ResponseEntity.ok(
+                "'was deleted': " + id
+        );
     }
 
     @GetMapping("/get")
@@ -116,6 +121,10 @@ public class CoordinatesController extends Controller {
                     old.setCanEdit(updated.getCanEdit());
                 },
                 coordinatesRepository
+        );
+        messagingTemplate.convertAndSend("/topic/coordinates", Map.of(
+                "action", "UPDATE",
+                "data", new CoordinatesDTO(updateCoordinates))
         );
         String json = service.convertToJson(new CoordinatesDTO(updateCoordinates));
         return ResponseEntity.ok(json);

@@ -81,7 +81,7 @@ public class DragonService {
         return validatedHeads;
     }
 
-    public String addDragon(String header, Dragon dragon) throws JsonProcessingException {
+    public DragonDTO addDragon(String header, Dragon dragon) throws JsonProcessingException {
         Coordinates coordinates = baseService.validateAndGetEntity(dragon.getCoordinates().getId(), coordinatesRepository, "Coordinates");
         dragon.setCoordinates(coordinates);
 
@@ -105,11 +105,11 @@ public class DragonService {
         dragon.setCreationDate(LocalDate.now());
 
         Dragon savedDragon = baseService.saveEntityWithUser(header, dragon, Dragon::setUser, dragonRepository);
-        String json = baseService.convertToJson(new DragonDTO(savedDragon));
-        return json;
+
+        return new DragonDTO(savedDragon);
     }
 
-    public String updateDragon(String header, Dragon dragon) throws JsonProcessingException {
+    public DragonDTO updateDragon(String header, Dragon dragon) throws JsonProcessingException {
         Dragon updateDragon = baseService.updateEntityWithUser(
                 header,
                 dragon,
@@ -132,9 +132,6 @@ public class DragonService {
                 },
                 dragonRepository
         );
-
-
-        String json = baseService.convertToJson(new DragonDTO(updateDragon));
-        return json;
+        return new DragonDTO(updateDragon);
     }
 }

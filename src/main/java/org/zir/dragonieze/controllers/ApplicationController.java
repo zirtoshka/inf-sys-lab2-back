@@ -9,19 +9,17 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.zir.dragonieze.admin.AdminApplication;
 import org.zir.dragonieze.admin.UpdateAppStatusRequest;
-import org.zir.dragonieze.dragon.DragonCave;
 import org.zir.dragonieze.dragon.repo.AppRepository;
 import org.zir.dragonieze.admin.StatusApplication;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.zir.dragonieze.dto.ApplicationDTO;
-import org.zir.dragonieze.dto.DragonCaveDTO;
+
 import org.zir.dragonieze.services.AdminService;
 import org.zir.dragonieze.services.BaseService;
 import org.zir.dragonieze.sort.CaveSort;
 import org.zir.dragonieze.sort.specifications.ApplicationSpecifications;
-import org.zir.dragonieze.sort.specifications.CaveSpecifications;
 import org.zir.dragonieze.user.User;
 
 import java.time.LocalDateTime;
@@ -32,15 +30,12 @@ import java.util.Map;
 @RequestMapping("dragon/app")
 public class ApplicationController extends Controller {
     private final AppRepository appRepository;
-    private final SimpMessagingTemplate messagingTemplate;
     private final AdminService adminService;
 
 
-
     public ApplicationController(BaseService baseService, AppRepository appRepository, SimpMessagingTemplate messagingTemplate, AdminService adminService) {
-        super(baseService);
+        super(baseService, messagingTemplate);
         this.appRepository = appRepository;
-        this.messagingTemplate = messagingTemplate;
         this.adminService = adminService;
     }
 
@@ -56,10 +51,10 @@ public class ApplicationController extends Controller {
                 .build();
         appRepository.save(newApp);
 
-        messagingTemplate.convertAndSend("/topic/application", Map.of(
+        messagingTemplate.convertAndSend("/topic/applications", Map.of(
                 "action", "ADD",
-                "application", new ApplicationDTO(newApp))
-        ); //todo subscribe topic
+                "data", new ApplicationDTO(newApp))
+        );
         return new ResponseEntity<>("New app created", HttpStatus.CREATED);
     }
 
@@ -71,16 +66,18 @@ public class ApplicationController extends Controller {
     ) {
         try {
             adminService.changeApplicationStatus(request);
-            messagingTemplate.convertAndSend("/topic/application", Map.of(
+            ApplicationDTO app = new ApplicationDTO(appRepository.findById(request.getId()).get());
+            //todo
+
+            messagingTemplate.convertAndSend("/topic/applications", Map.of(
                     "action", "UPDATE",
-                    "application", new ApplicationDTO(appRepository.findById(request.getId()).get()))
+                    "data", app)
             );
         } catch (IllegalArgumentException e) {
             return new ResponseEntity<>(e.getLocalizedMessage(), HttpStatus.BAD_REQUEST);
         }
         return new ResponseEntity<>("{\"message\": \"" + request + "\"}", HttpStatus.OK);
     }
-
 
 
     @GetMapping("/get")

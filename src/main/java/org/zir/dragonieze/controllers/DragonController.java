@@ -10,6 +10,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.zir.dragonieze.dragon.*;
@@ -18,22 +19,23 @@ import org.zir.dragonieze.log.Auditable;
 import org.zir.dragonieze.services.BaseService;
 import org.zir.dragonieze.services.DragonService;
 import org.zir.dragonieze.sort.DragonSort;
-import org.zir.dragonieze.sort.LocationSort;
 import org.zir.dragonieze.sort.specifications.DragonSpecifications;
 
 
 import java.time.LocalDate;
+import java.util.Map;
 
 @RestController
 @CrossOrigin(origins = "*")
 
-@RequestMapping("/dragon/user/dragon")
+@RequestMapping("/dragon/dragon")
 public class DragonController extends Controller {
 
     private final DragonService dragonService;
 
-    public DragonController(BaseService baseService, DragonService dragonService) {
-        super(baseService);
+
+    public DragonController(BaseService baseService, DragonService dragonService, SimpMessagingTemplate messagingTemplate) {
+        super(baseService,messagingTemplate);
         this.dragonService = dragonService;
     }
 
@@ -47,12 +49,16 @@ public class DragonController extends Controller {
 
     @Transactional
     @PostMapping("/add")
-    @Auditable(action="DELETE", entity = "Dragon")
     public ResponseEntity<String> addDragon(
             @RequestHeader(HEADER_AUTH) String header,
             @Valid @RequestBody Dragon dragon
     ) throws JsonProcessingException {
-        String json = dragonService.addDragon(header, dragon);
+        DragonDTO dragonDTO = dragonService.addDragon(header, dragon);
+        messagingTemplate.convertAndSend("/topic/", Map.of(
+                "action", "ADD",
+                "data", dragonDTO
+        ));
+        String json = service.convertToJson(dragonDTO);
         return ResponseEntity.ok(json);
     }
 
@@ -69,8 +75,13 @@ public class DragonController extends Controller {
                 Dragon::getUser,
                 dragonService.getDragonRepository()
         );
-        return ResponseEntity.ok("удалилось ура");
-    }
+        messagingTemplate.convertAndSend("/topic/", Map.of(
+                "action", "DELETE",
+                "id", id
+        ));
+        return ResponseEntity.ok(
+                "'was deleted': " + id
+        );    }
 
     @GetMapping("/get")
     public Page<DragonDTO> getDragons(
@@ -121,7 +132,12 @@ public class DragonController extends Controller {
             @RequestHeader(HEADER_AUTH) String header,
             @Valid @RequestBody Dragon dragon
     ) throws JsonProcessingException {
-        String json = dragonService.updateDragon(header, dragon);
+        DragonDTO updateDragon = dragonService.updateDragon(header, dragon);
+        messagingTemplate.convertAndSend("/topic/dragons", Map.of(
+                "action", "UPDATE",
+                "data", updateDragon)
+                );
+        String json = service.convertToJson(updateDragon);
         return ResponseEntity.ok(json);
     }
 

@@ -9,6 +9,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.zir.dragonieze.dragon.Location;
@@ -19,14 +20,17 @@ import org.zir.dragonieze.services.BaseService;
 import org.zir.dragonieze.sort.LocationSort;
 import org.zir.dragonieze.sort.specifications.LocationSpecifications;
 
+import java.util.Map;
+
 @RestController
 @CrossOrigin(origins = "*")
-@RequestMapping("/dragon/user/loc")
+@RequestMapping("/dragon/loc")
 public class LocationController extends Controller {
     private final LocationRepository locationRepository;
 
-    public LocationController(BaseService service, LocationRepository locationRepository) {
-        super(service);
+
+    public LocationController(BaseService service, LocationRepository locationRepository, SimpMessagingTemplate messagingTemplate) {
+        super(service,messagingTemplate);
         this.locationRepository = locationRepository;
     }
 
@@ -37,6 +41,10 @@ public class LocationController extends Controller {
             @Valid @RequestBody Location location
     ) throws JsonProcessingException {
         Location savedLocation = service.saveEntityWithUser(header, location, Location::setUser, locationRepository);
+        messagingTemplate.convertAndSend("/topic/locations", Map.of(
+                "action", "ADD",
+                "data",new LocationDTO(savedLocation))
+                );
         String json = service.convertToJson(new LocationDTO(savedLocation));
         return ResponseEntity.ok(json);
     }
@@ -54,8 +62,13 @@ public class LocationController extends Controller {
                 Location::getUser,
                 locationRepository
         );
-        return ResponseEntity.ok("удалилось ура");
-    }
+        messagingTemplate.convertAndSend("/topic/locations", Map.of(
+                "action", "DELETE",
+                "id",id)
+                );
+        return ResponseEntity.ok(
+                "'was deleted': " + id
+        );    }
 
     @GetMapping("/get")
     public Page<LocationDTO> getLocations(
@@ -106,9 +119,11 @@ public class LocationController extends Controller {
                 },
                 locationRepository
         );
+        messagingTemplate.convertAndSend("/topic/locations", Map.of(
+                "action", "UPDATE",
+                "data" ,new LocationDTO(updateLocation))
+                );
         String json = service.convertToJson(new LocationDTO(updateLocation));
         return ResponseEntity.ok(json);
     }
-
-
 }

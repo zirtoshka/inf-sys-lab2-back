@@ -34,7 +34,7 @@ public class AdminService {
                 }
                 application.setStatus(StatusApplication.CLOSE);
             }
-            case CANCELED -> application.setStatus(StatusApplication.CLOSE);
+            case CANCELED -> application.setStatus(StatusApplication.CANCELED);
             default -> throw new IllegalArgumentException("Invalid status value");
         }
         appRepository.save(application);
