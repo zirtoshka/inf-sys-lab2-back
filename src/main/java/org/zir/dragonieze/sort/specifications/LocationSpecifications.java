@@ -7,7 +7,7 @@ import org.zir.dragonieze.dragon.Location;
 
 @Component
 public class LocationSpecifications extends GeneralSpecification<Location> {
-    public static Specification<Location> hasX(float x) {
+    public static Specification<Location> hasX(Float x) {
         return hasField("x", x);
     }
 

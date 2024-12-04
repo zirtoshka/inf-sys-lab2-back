@@ -79,7 +79,7 @@ public class LocationController extends Controller {
             @RequestParam(value = "limit", defaultValue = "5") @Min(0) @Max(100) Integer limit,
             @RequestParam(value = "sort", defaultValue = "ID_ASC") LocationSort sort,
             @RequestParam(value = "id", required = false) Long id,
-            @RequestParam(value = "x", required = false) float x,
+            @RequestParam(value = "x", required = false) Float x,
             @RequestParam(value = "y", required = false) Integer y,
             @RequestParam(value = "z", required = false) Float z,
             @RequestParam(value = "canEdit", required = false) Boolean canEdit,

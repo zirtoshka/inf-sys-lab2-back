@@ -80,7 +80,7 @@ public class DragonHeadController extends Controller {
             @RequestParam(value = "sort", defaultValue = "ID_ASC") HeadSort sort,
             @RequestParam(value = "id", required = false) Long id,
             @RequestParam(value = "canEdit", required = false) Boolean canEdit,
-            @RequestParam(value = "eyesCount", required = false) double eyesCount,
+            @RequestParam(value = "eyesCount", required = false) Double eyesCount,
             @RequestParam(value = "userId", required = false) Long userId
     ) {
         Specification<DragonHead> specification = Specification.where(

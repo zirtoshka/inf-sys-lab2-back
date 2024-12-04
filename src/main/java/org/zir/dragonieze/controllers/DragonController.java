@@ -101,9 +101,9 @@ public class DragonController extends Controller {
             @RequestParam(value = "caveId", required = false) Long cavedId,
             @RequestParam(value = "killerId", required = false) Long killerId,
             @RequestParam(value = "age", required = false) Integer age,
-            @RequestParam(value = "wingspan", required = false) long wingspan,
+            @RequestParam(value = "wingspan", required = false) Long wingspan,
             @RequestParam(value = "character", required = false) DragonCharacter character,
-            @RequestParam(value = "headCount", required = false) int headCount
+            @RequestParam(value = "headCount", required = false) Integer headCount
     ){
         Specification<Dragon> specification = Specification.where(
                 dragonSpecifications.hasId(id)
