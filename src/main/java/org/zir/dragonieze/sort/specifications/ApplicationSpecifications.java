@@ -11,7 +11,7 @@ public class ApplicationSpecifications extends DataSpecifications {
         return hasField("user.id", userId);
     }
 
-    public  Specification<AdminApplication> hasId(Long id) {
+    public static Specification<AdminApplication> hasId(Long id) {
         return hasField("id", id);
     }
 
