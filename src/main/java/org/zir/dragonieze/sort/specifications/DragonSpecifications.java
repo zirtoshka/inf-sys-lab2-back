@@ -11,43 +11,43 @@ import java.time.LocalDate;
 @Component
 public class DragonSpecifications extends GeneralSpecification<Dragon> {
 
-    public static Specification<Dragon> hasCoordinates(Long coordinatesId) {
+    public Specification<Dragon> hasCoordinates(Long coordinatesId) {
         return hasField("coordinates.id", coordinatesId);
     }
 
-    public static Specification<Dragon> hasName(String name) {
+    public Specification<Dragon> hasName(String name) {
         return hasField("name", name);
     }
 
-    public static Specification<Dragon> hasCreationDate(LocalDate creationDate) {
+    public Specification<Dragon> hasCreationDate(LocalDate creationDate) {
         return hasField("creationDate", creationDate);
     }
 
-    public static Specification<Dragon> hasCave(Long caveId) {
+    public Specification<Dragon> hasCave(Long caveId) {
         return hasField("cave.id", caveId);
     }
 
-    public static Specification<Dragon> hasKiller(Long killerId) {
+    public Specification<Dragon> hasKiller(Long killerId) {
         return hasField("killer.id", killerId);
     }
 
-    public static Specification<Dragon> hasAge(Integer age) {
+    public Specification<Dragon> hasAge(Integer age) {
         return hasField("age", age);
     }
 
-    public static Specification<Dragon> hasWingspan(Long wingspan) {
+    public Specification<Dragon> hasWingspan(Long wingspan) {
         return hasField("wingspan", wingspan);
     }
 
-    public static Specification<Dragon> hasColor(Color color) {
+    public Specification<Dragon> hasColor(Color color) {
         return hasField("color", color);
     }
 
-    public static Specification<Dragon> hasCharacter(DragonCharacter character) {
+    public Specification<Dragon> hasCharacter(DragonCharacter character) {
         return hasField("character", character);
     }
 
-    public static Specification<Dragon> hasHeads(Integer countHeads) {
+    public Specification<Dragon> hasHeads(Integer countHeads) {
         return hasField("heads.len", countHeads);
     }
 }

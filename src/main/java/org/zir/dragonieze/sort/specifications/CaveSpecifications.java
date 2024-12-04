@@ -7,7 +7,7 @@ import org.zir.dragonieze.dragon.DragonCave;
 @Component
 public class CaveSpecifications extends GeneralSpecification<DragonCave> {
 
-    public static Specification<DragonCave> hasTreasures(Integer treasure) {
+    public Specification<DragonCave> hasTreasures(Integer treasure) {
         return hasField("numberOfTreasures", treasure);
     }
 

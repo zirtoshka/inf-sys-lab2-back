@@ -8,7 +8,7 @@ import org.zir.dragonieze.dragon.DragonHead;
 @Component
 public class HeadSpecifications extends GeneralSpecification<DragonHead> {
 
-    public static Specification<DragonHead> hasEyes(Double eyesCount) {
+    public Specification<DragonHead> hasEyes(Double eyesCount) {
         return hasField("eyesCount", eyesCount);
     }
 }
