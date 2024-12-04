@@ -28,12 +28,14 @@ import java.util.Map;
 public class PersonController extends Controller {
     private final PersonRepository personRepository;
     private final LocationRepository locationRepository;
+    private final PersonSpecifications personSpecifications;
 
 
-    public PersonController(BaseService service, PersonRepository personRepository, LocationRepository locationRepository, SimpMessagingTemplate messagingTemplate) {
-        super(service,messagingTemplate);
+    public PersonController(BaseService service, PersonRepository personRepository, LocationRepository locationRepository, SimpMessagingTemplate messagingTemplate, PersonSpecifications personSpecifications) {
+        super(service, messagingTemplate);
         this.personRepository = personRepository;
         this.locationRepository = locationRepository;
+        this.personSpecifications = personSpecifications;
     }
 
     @Transactional
@@ -52,7 +54,7 @@ public class PersonController extends Controller {
         messagingTemplate.convertAndSend("/topic/persons", Map.of(
                 "action", "ADD",
                 "data", new PersonDTO(savedPerson))
-                );
+        );
         String json = service.convertToJson(new PersonDTO(savedPerson));
         return ResponseEntity.ok(json);
     }
@@ -74,10 +76,11 @@ public class PersonController extends Controller {
         messagingTemplate.convertAndSend("/topic/persons", Map.of(
                 "action", "DELETE",
                 "id", id
-                ));
+        ));
         return ResponseEntity.ok(
                 "'was deleted': " + id
-        );    }
+        );
+    }
 
     @GetMapping("/get")
     public Page<PersonDTO> getPersons(
@@ -97,17 +100,17 @@ public class PersonController extends Controller {
             @RequestParam(value = "nationality", required = false) Country nationality
     ) {
         Specification<Person> specification = Specification.where(
-                PersonSpecifications.hasId(id)
-                        .and(PersonSpecifications.hasName(name))
-                        .and(PersonSpecifications.hasUserId(userId))
-                        .and(PersonSpecifications.hasHair(hair))
-                        .and(PersonSpecifications.hasCanEdit(canEdit))
-                        .and(PersonSpecifications.hasLocation(locationId))
-                        .and(PersonSpecifications.hasHeight(height))
-                        .and(PersonSpecifications.hasPassportID(passportID))
-                        .and(PersonSpecifications.hasNationality(nationality))
-                        .and(PersonSpecifications.hasEyes(eye))
+                personSpecifications.hasId(id)
+                        .and(personSpecifications.hasName(name))
+                        .and(personSpecifications.hasUserId(userId))
+                        .and(personSpecifications.hasHair(hair))
+                        .and(personSpecifications.hasLocation(locationId))
+                        .and(personSpecifications.hasHeight(height))
+                        .and(personSpecifications.hasPassportID(passportID))
+                        .and(personSpecifications.hasNationality(nationality))
+                        .and(personSpecifications.hasEyes(eye))
         );
+        specification = canEditSpec(canEdit, specification, personSpecifications);
         return personRepository.findAll(specification,
                         PageRequest.of(offset, limit, sort.getSortValue()))
                 .map(PersonDTO::new);
@@ -142,7 +145,7 @@ public class PersonController extends Controller {
         messagingTemplate.convertAndSend("/topic/persons", Map.of(
                 "action", "UPDATE",
                 "data", updatePerson)
-                );
+        );
         String json = service.convertToJson(new PersonDTO(updatePerson));
         return ResponseEntity.ok(json);
     }

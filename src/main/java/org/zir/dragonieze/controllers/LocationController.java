@@ -27,11 +27,13 @@ import java.util.Map;
 @RequestMapping("/dragon/loc")
 public class LocationController extends Controller {
     private final LocationRepository locationRepository;
+    private final LocationSpecifications locationSpecifications;
 
 
-    public LocationController(BaseService service, LocationRepository locationRepository, SimpMessagingTemplate messagingTemplate) {
+    public LocationController(BaseService service, LocationRepository locationRepository, SimpMessagingTemplate messagingTemplate, LocationSpecifications locationSpecifications) {
         super(service,messagingTemplate);
         this.locationRepository = locationRepository;
+        this.locationSpecifications = locationSpecifications;
     }
 
     @Transactional
@@ -85,14 +87,14 @@ public class LocationController extends Controller {
             @RequestParam(value = "name", required = false) String name
     ) {
         Specification<Location> specification = Specification.where(
-                LocationSpecifications.hasId(id)
-                        .and(LocationSpecifications.hasX(x))
-                        .and(LocationSpecifications.hasY(y))
-                        .and(LocationSpecifications.hasZ(z))
-                        .and(LocationSpecifications.hasCanEdit(canEdit))
-                        .and(LocationSpecifications.hasUserId(userId))
-                        .and(LocationSpecifications.hasName(name))
+                locationSpecifications.hasId(id)
+                        .and(locationSpecifications.hasX(x))
+                        .and(locationSpecifications.hasY(y))
+                        .and(locationSpecifications.hasZ(z))
+                        .and(locationSpecifications.hasUserId(userId))
+                        .and(locationSpecifications.hasName(name))
         );
+        specification=canEditSpec(canEdit, specification, locationSpecifications);
         return locationRepository.findAll(specification,
                         PageRequest.of(offset, limit, sort.getSortValue()))
                 .map(LocationDTO::new);

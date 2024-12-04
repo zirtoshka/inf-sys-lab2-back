@@ -27,11 +27,12 @@ import java.util.Map;
 @RequestMapping("/dragon/head")
 public class DragonHeadController extends Controller {
     private final DragonHeadRepository headRepository;
+    private final HeadSpecifications headSpecifications;
 
-
-    public DragonHeadController(BaseService service, DragonHeadRepository headRepository, SimpMessagingTemplate messagingTemplate) {
+    public DragonHeadController(BaseService service, DragonHeadRepository headRepository, SimpMessagingTemplate messagingTemplate, HeadSpecifications headSpecifications) {
         super(service, messagingTemplate);
         this.headRepository = headRepository;
+        this.headSpecifications = headSpecifications;
     }
 
     @Transactional
@@ -83,11 +84,11 @@ public class DragonHeadController extends Controller {
             @RequestParam(value = "userId", required = false) Long userId
     ) {
         Specification<DragonHead> specification = Specification.where(
-                HeadSpecifications.hasId(id)
-                        .and(HeadSpecifications.hasCanEdit(canEdit))
-                        .and(HeadSpecifications.hasEyes(eyesCount))
-                        .and(HeadSpecifications.hasUserId(userId))
+                headSpecifications.hasId(id)
+                        .and(headSpecifications.hasEyes(eyesCount))
+                        .and(headSpecifications.hasUserId(userId))
         );
+        specification = canEditSpec(canEdit, specification, headSpecifications);
         return headRepository.findAll(specification,
                         PageRequest.of(offset, limit, sort.getSortValue()))
                 .map(DragonHeadDTO::new);

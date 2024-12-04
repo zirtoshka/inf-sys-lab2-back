@@ -32,11 +32,13 @@ import java.util.Map;
 public class DragonController extends Controller {
 
     private final DragonService dragonService;
+    private final  DragonSpecifications dragonSpecifications;
 
 
-    public DragonController(BaseService baseService, DragonService dragonService, SimpMessagingTemplate messagingTemplate) {
+    public DragonController(BaseService baseService, DragonService dragonService, SimpMessagingTemplate messagingTemplate, DragonSpecifications dragonSpecifications) {
         super(baseService,messagingTemplate);
         this.dragonService = dragonService;
+        this.dragonSpecifications = dragonSpecifications;
     }
 
 
@@ -104,20 +106,20 @@ public class DragonController extends Controller {
             @RequestParam(value = "headCount", required = false) int headCount
     ){
         Specification<Dragon> specification = Specification.where(
-                DragonSpecifications.hasId(id)
-                        .and(DragonSpecifications.hasUserId(userId))
-                        .and(DragonSpecifications.hasName(name))
-                        .and(DragonSpecifications.hasColor(color))
-                        .and(DragonSpecifications.hasCoordinates(coordId))
-                        .and(DragonSpecifications.hasCreationDate(creationDate))
-                        .and(DragonSpecifications.hasKiller(killerId))
-                        .and(DragonSpecifications.hasAge(age))
-                        .and(DragonSpecifications.hasCanEdit(canEdit))
-                        .and(DragonSpecifications.hasWingspan(wingspan))
-                        .and(DragonSpecifications.hasCave(cavedId))
-                        .and(DragonSpecifications.hasCharacter(character))
-                        .and(DragonSpecifications.hasHeads(headCount))
+                dragonSpecifications.hasId(id)
+                        .and(dragonSpecifications.hasUserId(userId))
+                        .and(dragonSpecifications.hasName(name))
+                        .and(dragonSpecifications.hasColor(color))
+                        .and(dragonSpecifications.hasCoordinates(coordId))
+                        .and(dragonSpecifications.hasCreationDate(creationDate))
+                        .and(dragonSpecifications.hasKiller(killerId))
+                        .and(dragonSpecifications.hasAge(age))
+                        .and(dragonSpecifications.hasWingspan(wingspan))
+                        .and(dragonSpecifications.hasCave(cavedId))
+                        .and(dragonSpecifications.hasCharacter(character))
+                        .and(dragonSpecifications.hasHeads(headCount))
         );
+        specification = canEditSpec(canEdit, specification, dragonSpecifications);
         return dragonService.getDragonRepository().findAll(
                 specification,
                 PageRequest.of(offset,limit,sort.getSortValue())

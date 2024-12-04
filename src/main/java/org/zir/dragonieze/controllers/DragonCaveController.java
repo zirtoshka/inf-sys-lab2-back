@@ -19,6 +19,7 @@ import org.zir.dragonieze.log.Auditable;
 import org.zir.dragonieze.services.BaseService;
 import org.zir.dragonieze.sort.CaveSort;
 import org.zir.dragonieze.sort.specifications.CaveSpecifications;
+import org.zir.dragonieze.sort.specifications.DragonSpecifications;
 
 import java.util.Map;
 
@@ -29,10 +30,12 @@ import java.util.Map;
 
 public class DragonCaveController extends Controller {
     private final DragonCaveRepository caveRepository;
+    private final CaveSpecifications caveSpecifications;
 
-    public DragonCaveController(BaseService baseService, DragonCaveRepository caveRepository, SimpMessagingTemplate messagingTemplate) {
+    public DragonCaveController(BaseService baseService, DragonCaveRepository caveRepository, SimpMessagingTemplate messagingTemplate, DragonSpecifications dragonSpecifications, CaveSpecifications caveSpecifications) {
         super(baseService, messagingTemplate);
         this.caveRepository = caveRepository;
+        this.caveSpecifications = caveSpecifications;
     }
 
     @Transactional
@@ -83,13 +86,11 @@ public class DragonCaveController extends Controller {
             @RequestParam(value = "numberOfTreasures", required = false) Integer treasure
     ) {
         Specification<DragonCave> specification = Specification.where(
-                CaveSpecifications.hasId(id)
-                        .and(CaveSpecifications.hasUserId(userId))
-                        .and(CaveSpecifications.hasTreasures(treasure))
+                caveSpecifications.hasId(id)
+                        .and(caveSpecifications.hasUserId(userId))
+                        .and(caveSpecifications.hasTreasures(treasure))
         );
-        if (canEdit != null) {
-            specification = specification.and(CaveSpecifications.hasCanEdit(canEdit));
-        }
+        specification = canEditSpec(canEdit, specification, caveSpecifications);
 
         return caveRepository.findAll(
                 specification,
