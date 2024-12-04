@@ -13,6 +13,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.zir.dragonieze.dragon.Coordinates;
+import org.zir.dragonieze.dragon.GeneralEntity;
 import org.zir.dragonieze.dragon.repo.CoordinatesRepository;
 import org.zir.dragonieze.dto.CoordinatesDTO;
 import org.zir.dragonieze.log.Auditable;
@@ -28,12 +29,14 @@ import java.util.Map;
 @RequestMapping("/dragon/coord")
 public class CoordinatesController extends Controller {
     private final CoordinatesRepository coordinatesRepository;
+    private final CoordinatesSpecifications coordinatesSpecifications;
 
 
     public CoordinatesController(CoordinatesRepository coordinatesRepository,
-                                 BaseService service, SimpMessagingTemplate messagingTemplate) {
+                                 BaseService service, SimpMessagingTemplate messagingTemplate, CoordinatesSpecifications coordinatesSpecifications) {
         super(service, messagingTemplate);
         this.coordinatesRepository = coordinatesRepository;
+        this.coordinatesSpecifications = coordinatesSpecifications;
     }
 
 
@@ -89,13 +92,13 @@ public class CoordinatesController extends Controller {
 
     ) {
         Specification<Coordinates> spec = Specification.where(
-                CoordinatesSpecifications.hasId(id)
-                        .and(CoordinatesSpecifications.hasX(x))
-                        .and(CoordinatesSpecifications.hasY(y))
-                        .and(CoordinatesSpecifications.hasCanEdit(canEdit))
-                        .and(CoordinatesSpecifications.hasUserId(userId))
+                coordinatesSpecifications.hasId(id)
+                        .and(coordinatesSpecifications.hasX(x))
+                        .and(coordinatesSpecifications.hasY(y))
+                        .and(coordinatesSpecifications.hasUserId(userId))
         );
 
+        spec = canEditSpec(canEdit, spec, coordinatesSpecifications);
 
         return coordinatesRepository.findAll(spec,
                 PageRequest.of(offset, limit, sort.getSortValue())

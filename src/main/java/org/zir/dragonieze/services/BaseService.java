@@ -9,7 +9,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 import org.zir.dragonieze.auth.JwtUtil;
-import org.zir.dragonieze.dragon.EditableEntity;
+import org.zir.dragonieze.dragon.GeneralEntity;
 import org.zir.dragonieze.user.Role;
 import org.zir.dragonieze.user.User;
 import org.zir.dragonieze.user.UserRepository;
@@ -37,13 +37,13 @@ public class BaseService {
     }
 
     @Transactional
-    public <T extends EditableEntity> T updateEntityWithUser(String header,
-                                                             T updatedEntity,
-                                                             Long updatedEntityId,
-                                                             Function<Long, Optional<T>> findByIdFunction,
-                                                             Function<T, User> getOwnerFunction,
-                                                             BiConsumer<T, T> updateFieldsFunction,
-                                                             JpaRepository<T, ?> repository) {
+    public <T extends GeneralEntity> T updateEntityWithUser(String header,
+                                                            T updatedEntity,
+                                                            Long updatedEntityId,
+                                                            Function<Long, Optional<T>> findByIdFunction,
+                                                            Function<T, User> getOwnerFunction,
+                                                            BiConsumer<T, T> updateFieldsFunction,
+                                                            JpaRepository<T, ?> repository) {
 
         User user = getUserFromHeader(header);
 
@@ -73,7 +73,7 @@ public class BaseService {
 
 
     @Transactional
-    public <T extends EditableEntity> void deleteEntityWithCondition(
+    public <T extends GeneralEntity> void deleteEntityWithCondition(
             String header,
             Long entityId,
             Function<T, User> getOwnerFunction,

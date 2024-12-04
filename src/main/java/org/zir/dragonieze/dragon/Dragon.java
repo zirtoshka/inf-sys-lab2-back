@@ -20,10 +20,10 @@ import java.util.List;
 @Setter
 @Entity
 @Table(name = "dragon")
-public class Dragon implements EditableEntity{
+public class Dragon implements GeneralEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private long id; // больше 0, уникальным, генерироваться автоматически
+    private Long id; // больше 0, уникальным, генерироваться автоматически
 
     @NotBlank(message = "Name is mandatory")
     private String name; // не  null, Строка не может быть пустой

@@ -10,10 +10,10 @@ import org.zir.dragonieze.user.User;
 @Setter
 @Entity
 @Table(name = "head")
-public class DragonHead implements EditableEntity{
+public class DragonHead implements GeneralEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+    private Long id;
 
     private double eyesCount;
     @NotNull

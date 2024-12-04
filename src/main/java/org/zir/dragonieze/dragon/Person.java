@@ -18,10 +18,10 @@ import java.util.List;
 @Setter
 @Getter
 @AllArgsConstructor
-public class Person implements EditableEntity {
+public class Person implements GeneralEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private long id;
+    private Long id;
     @NotBlank
     private String name; //Поле не может быть null, Строка не может быть пустой
     @NotNull

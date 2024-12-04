@@ -6,8 +6,10 @@ import jakarta.validation.constraints.NotNull;
 import lombok.*;
 import org.zir.dragonieze.user.User;
 
+import java.rmi.server.UID;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @AllArgsConstructor
 @NoArgsConstructor
@@ -15,10 +17,10 @@ import java.util.List;
 @Setter
 @Entity
 @Table(name ="coord")
-public class Coordinates implements EditableEntity{
+public class Coordinates implements GeneralEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
-    private long id;
+    private Long id;
 
     @NotNull
     private Double x; //Поле не может быть null

@@ -5,18 +5,7 @@ import org.zir.dragonieze.dragon.Color;
 import org.zir.dragonieze.dragon.Country;
 import org.zir.dragonieze.dragon.Person;
 
-public class PersonSpecifications extends DataSpecifications {
-    public static Specification<Person> hasCanEdit(boolean canEdit) {
-        return hasField("canEdit", canEdit);
-    }
-
-    public static Specification<Person> hasUserId(Long userId) {
-        return hasField("user.id", userId);
-    }
-
-    public static Specification<Person> hasId(Long id) {
-        return hasField("id", id);
-    }
+public class PersonSpecifications extends GeneralSpecification<Person> {
 
     public static Specification<Person> hasName(String name) {
         return hasField("name", name);

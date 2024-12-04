@@ -7,18 +7,7 @@ import org.zir.dragonieze.dragon.DragonCharacter;
 
 import java.time.LocalDate;
 
-public class DragonSpecifications extends DataSpecifications {
-    public static Specification<Dragon> hasCanEdit(boolean canEdit) {
-        return hasField("canEdit", canEdit);
-    }
-
-    public static Specification<Dragon> hasUserId(Long userId) {
-        return hasField("user.id", userId);
-    }
-
-    public static Specification<Dragon> hasId(Long id) {
-        return hasField("id", id);
-    }
+public class DragonSpecifications extends GeneralSpecification<Dragon> {
 
     public static Specification<Dragon> hasCoordinates(Long coordinatesId) {
         return hasField("coordinates.id", coordinatesId);
