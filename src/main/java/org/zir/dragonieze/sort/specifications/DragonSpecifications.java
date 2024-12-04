@@ -1,12 +1,14 @@
 package org.zir.dragonieze.sort.specifications;
 
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.stereotype.Component;
 import org.zir.dragonieze.dragon.Color;
 import org.zir.dragonieze.dragon.Dragon;
 import org.zir.dragonieze.dragon.DragonCharacter;
 
 import java.time.LocalDate;
 
+@Component
 public class DragonSpecifications extends GeneralSpecification<Dragon> {
 
     public static Specification<Dragon> hasCoordinates(Long coordinatesId) {

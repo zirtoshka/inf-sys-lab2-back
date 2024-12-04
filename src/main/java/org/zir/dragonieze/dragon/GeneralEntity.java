@@ -4,13 +4,38 @@ import org.zir.dragonieze.user.User;
 
 
 public interface GeneralEntity {
-    void setId(Long id); //todo uuid
-    long getId();
+    default void setId(Long id) {
+    }
 
-    void setUser(User user);
-    User getUser();
+    ; //todo uuid
 
-    void setCanEdit(boolean canEdit);
-    boolean getCanEdit();
+    default Long getId() {
+        return null;
+    }
+
+    ;
+
+
+    default void setUser(User user) {
+    }
+
+    ;
+
+    default User getUser() {
+        return null;
+    }
+
+    ;
+
+    default void setCanEdit(boolean canEdit) {
+    }
+
+    ;
+
+    default boolean getCanEdit() {
+        return false;
+    }
+
+    ;
 }
 

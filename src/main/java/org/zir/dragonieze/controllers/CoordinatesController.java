@@ -32,6 +32,7 @@ public class CoordinatesController extends Controller {
     private final CoordinatesSpecifications coordinatesSpecifications;
 
 
+
     public CoordinatesController(CoordinatesRepository coordinatesRepository,
                                  BaseService service, SimpMessagingTemplate messagingTemplate, CoordinatesSpecifications coordinatesSpecifications) {
         super(service, messagingTemplate);

@@ -2,8 +2,10 @@ package org.zir.dragonieze.sort.specifications;
 
 
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.stereotype.Component;
 import org.zir.dragonieze.dragon.Location;
 
+@Component
 public class LocationSpecifications extends GeneralSpecification<Location> {
     public static Specification<Location> hasX(float x) {
         return hasField("x", x);

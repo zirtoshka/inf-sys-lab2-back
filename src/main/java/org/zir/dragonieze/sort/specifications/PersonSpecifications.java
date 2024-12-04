@@ -1,10 +1,12 @@
 package org.zir.dragonieze.sort.specifications;
 
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.stereotype.Component;
 import org.zir.dragonieze.dragon.Color;
 import org.zir.dragonieze.dragon.Country;
 import org.zir.dragonieze.dragon.Person;
 
+@Component
 public class PersonSpecifications extends GeneralSpecification<Person> {
 
     public static Specification<Person> hasName(String name) {
