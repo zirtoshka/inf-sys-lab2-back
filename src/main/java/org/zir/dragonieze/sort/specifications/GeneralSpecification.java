@@ -5,7 +5,7 @@ import org.springframework.data.jpa.domain.Specification;
 import org.zir.dragonieze.dragon.GeneralEntity;
 
 public class GeneralSpecification<T extends GeneralEntity> extends DataSpecifications{
-    public Specification<T> hasCanEdit(boolean canEdit) {
+    public Specification<T> hasCanEdit(Boolean canEdit) {
         return hasField("canEdit", canEdit);
     }
 

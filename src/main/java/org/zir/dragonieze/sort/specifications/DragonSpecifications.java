@@ -35,7 +35,7 @@ public class DragonSpecifications extends GeneralSpecification<Dragon> {
         return hasField("age", age);
     }
 
-    public static Specification<Dragon> hasWingspan(long wingspan) {
+    public static Specification<Dragon> hasWingspan(Long wingspan) {
         return hasField("wingspan", wingspan);
     }
 
@@ -47,7 +47,7 @@ public class DragonSpecifications extends GeneralSpecification<Dragon> {
         return hasField("character", character);
     }
 
-    public static Specification<Dragon> hasHeads(int countHeads) {
+    public static Specification<Dragon> hasHeads(Integer countHeads) {
         return hasField("heads.len", countHeads);
     }
 }

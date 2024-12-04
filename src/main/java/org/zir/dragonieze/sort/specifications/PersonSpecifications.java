@@ -25,7 +25,7 @@ public class PersonSpecifications extends GeneralSpecification<Person> {
         return hasField("location.id", locationId);
     }
 
-    public static Specification<Person> hasHeight(int height) {
+    public static Specification<Person> hasHeight(Integer height) {
         return hasField("height", height);
     }
 
