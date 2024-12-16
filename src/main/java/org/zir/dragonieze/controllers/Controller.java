@@ -19,8 +19,6 @@ import java.util.Map;
 
 @Component
 public class Controller {
-
-    protected final String HEADER_AUTH = "Authorization";
     protected final BaseService service;
     protected final SimpMessagingTemplate messagingTemplate;
 
@@ -29,7 +27,6 @@ public class Controller {
         this.service = service;
         this.messagingTemplate = messagingTemplate;
     }
-
 
     @ExceptionHandler(ResponseStatusException.class)
     public ResponseEntity<String> handleResponseStatusException(ResponseStatusException ex) {

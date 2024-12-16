@@ -1,35 +1,32 @@
-package org.zir.dragonieze.openam;
+package org.zir.dragonieze.openam.auth;
 
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Bean;
-import org.springframework.core.ParameterizedTypeReference;
-import org.springframework.http.HttpEntity;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationDetailsSource;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
+import org.springframework.security.web.authentication.rememberme.InvalidCookieException;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.HttpClientErrorException;
+import org.zir.dragonieze.openam.api.OpenAmRestApiClient;
+import org.zir.dragonieze.user.Role;
+import org.zir.dragonieze.user.User;
 import org.zir.dragonieze.user.UserRepository;
 
 import java.io.IOException;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
-import java.util.Map;
 import java.util.Optional;
+import java.util.function.Function;
 
 @Service
 public class OpenAmAuthenticationFilter extends AbstractAuthenticationProcessingFilter {
@@ -38,15 +35,20 @@ public class OpenAmAuthenticationFilter extends AbstractAuthenticationProcessing
 
     private String openamRealm;
 
-    private final String openAmCookieName = "iPlanetDirectoryPro";
+    public static final String OPENAM_COOKIE_NAME = "iPlanetDirectoryPro";
 
     @Setter(onMethod_ = {@Autowired})
     private UserRepository userRepository;
+    @Setter(onMethod_ = {@Autowired})
+    private OpenAmRestApiClient openAmApi;
 
-    public static final String OPENAM_AUTH_URI = "/openam-auth";
+    private String adminUsername;
+    private String adminPassword;
+    private String adminAuthCookie;
 
     public OpenAmAuthenticationFilter() {
-        super(OPENAM_AUTH_URI, new OpenAmAuthenticationManager());
+        super("/**", new OpenAmAuthenticationManager());
+        setAuthenticationSuccessHandler((request, response, authentication) -> {});
         setSecurityContextRepository(new HttpSessionSecurityContextRepository());
     }
 
@@ -55,38 +57,64 @@ public class OpenAmAuthenticationFilter extends AbstractAuthenticationProcessing
     @Override
     public Authentication attemptAuthentication(HttpServletRequest request, HttpServletResponse response)
             throws AuthenticationException, IOException {
-        Optional<Cookie> openamCookie = Arrays.stream(request.getCookies())
-                .filter(c -> c.getName().equals(openAmCookieName)).findFirst();
-        if (openamCookie.isEmpty()) {
-            response.sendRedirect(getOpenAmAuthUrl(request));
-            return null;
-        } else {
-            System.out.println("cookie found");
-            String userId = getUserIdFromSession(openamCookie.get().getValue());
-            if (userId == null) {
+        Cookie[] cookies = Optional.ofNullable(request.getCookies()).orElse(new Cookie[0]);
+        String authCookie = Arrays.stream(cookies)
+                .filter(c -> c.getName().equals(OPENAM_COOKIE_NAME))
+                .findFirst()
+                .orElse(new Cookie(OPENAM_COOKIE_NAME, ""))
+                .getValue();
+
+        if (authCookie.isEmpty()) {
+            throw new InvalidCookieException("iPlanetDirectoryPro cookie is missing");
+        }
+
+        try {
+            User user = openAmApi.getUserByCookie(authCookie);
+            if (user == null) {
                 throw new BadCredentialsException("invalid session!");
             }
-            OpenAmAuthenticationToken token = new OpenAmAuthenticationToken(userId);
+
+            Optional<User> foundUser = userRepository.findByUsername(user.getUsername());
+            if (foundUser.isEmpty()) {
+                userRepository.save(user);
+            } else {
+                user = foundUser.get();
+            }
+
+            String dn = user.getDn();
+            String[] groups = execAsAdmin(cookie ->
+                openAmApi.getUserGroups(cookie, dn)
+            );
+
+            Role[] roles = Arrays.stream(groups)
+                    .map(Role::byFullName)
+                    .filter(Optional::isPresent)
+                    .map(Optional::get)
+                    .toArray(Role[]::new);
+
+            if (!Arrays.asList(roles).contains(Role.USER)) {
+                execAsAdmin(cookie -> {
+                    openAmApi.addUserToGroup(cookie, dn, Role.USER.getFullName());
+                    return null;
+                });
+            }
+
+            OpenAmAuthenticationToken token = new OpenAmAuthenticationToken(
+                    new OpenAmUserPrincipal(user, authCookie, roles),
+                    roles
+            );
             token.setDetails(authenticationDetailsSource.buildDetails(request));
+
             return this.getAuthenticationManager().authenticate(token);
+        } catch (HttpClientErrorException.Unauthorized e) {
+            throw new InvalidCookieException("iPlanetDirectoryPro cookie has expired");
         }
     }
 
-    protected String getUserIdFromSession(String sessionId) {
-        RestTemplate restTemplate = new RestTemplate();
-        ParameterizedTypeReference<Map<String, String>> responseType =
-                new ParameterizedTypeReference<>() {
-                };
-        HttpHeaders headers = new HttpHeaders();
-        headers.add(openAmCookieName, sessionId);
-        headers.setContentType(MediaType.APPLICATION_JSON);
-        HttpEntity<?> entity = new HttpEntity<>(headers);
-        ResponseEntity<Map<String, String>> response = restTemplate.exchange(openAmUserInfoUrl, HttpMethod.POST, entity, responseType);
-        Map<String, String> body = response.getBody();
-        if (body == null) {
-            return null;
-        }
-        return body.get("id");
+    @Override
+    protected void successfulAuthentication(HttpServletRequest request, HttpServletResponse response, FilterChain chain, Authentication authResult) throws IOException, ServletException {
+        super.successfulAuthentication(request, response, chain, authResult);
+        chain.doFilter(request, response);
     }
 
     @Value("${openam.auth.realm:/}")
@@ -100,21 +128,26 @@ public class OpenAmAuthenticationFilter extends AbstractAuthenticationProcessing
         this.openAmUserInfoUrl = openAmUrl.concat("/json/users?_action=idFromSession");
     }
 
-    private String getFullRequestUrl(HttpServletRequest request) {
-        StringBuilder result = new StringBuilder(request.getRequestURL().toString());
-        String queryString = request.getQueryString();
-
-        if (queryString != null) {
-            result.append("?").append(queryString);
-        }
-
-        return result.toString();
+    @Value("${admin.username}")
+    public void setAdminUsername(String adminUsername) {
+        this.adminUsername = adminUsername;
     }
 
-    public String getOpenAmAuthUrl(HttpServletRequest request) {
-        String redirectUrl = getFullRequestUrl(request);
-        return openAmAuthUrl + "?goto=" + URLEncoder.encode(redirectUrl, StandardCharsets.UTF_8)
-                + "&realm=" + URLEncoder.encode(openamRealm, StandardCharsets.UTF_8)
-                + "#login";
+    @Value("${admin.password}")
+    public void setAdminPassword(String adminPassword) {
+        this.adminPassword = adminPassword;
+    }
+
+    private void authenticateAdmin() {
+        this.adminAuthCookie = openAmApi.authenticateUser(adminUsername, adminPassword);
+    }
+
+    private <T> T execAsAdmin(Function<String, T> fn) {
+        try {
+            return fn.apply(adminAuthCookie);
+        } catch (HttpClientErrorException.Unauthorized e) {
+            authenticateAdmin();
+            return fn.apply(adminAuthCookie);
+        }
     }
 }

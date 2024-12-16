@@ -1,4 +1,4 @@
-package org.zir.dragonieze.openam;
+package org.zir.dragonieze.openam.auth;
 
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.core.Authentication;

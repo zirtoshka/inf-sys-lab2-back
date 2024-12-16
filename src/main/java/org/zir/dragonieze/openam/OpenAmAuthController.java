@@ -14,7 +14,7 @@ import java.util.Arrays;
 
 @RestController
 @RequestMapping("/dragon/am")
-public class OpenAuthController {
+public class OpenAmAuthController {
     @GetMapping("/status")
     public ResponseEntity<UserDTO> checkAuthStatus(@AuthenticationPrincipal OpenAmUserPrincipal user) {
         return ResponseEntity.ok(new UserDTO(

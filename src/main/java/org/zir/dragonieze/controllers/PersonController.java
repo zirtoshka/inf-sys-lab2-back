@@ -9,6 +9,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.zir.dragonieze.dragon.*;
@@ -16,6 +17,7 @@ import org.zir.dragonieze.dragon.repo.LocationRepository;
 import org.zir.dragonieze.dragon.repo.PersonRepository;
 import org.zir.dragonieze.dto.PersonDTO;
 import org.zir.dragonieze.log.Auditable;
+import org.zir.dragonieze.openam.auth.OpenAmUserPrincipal;
 import org.zir.dragonieze.services.BaseService;
 import org.zir.dragonieze.sort.PersonSort;
 import org.zir.dragonieze.sort.specifications.PersonSpecifications;
@@ -23,7 +25,6 @@ import org.zir.dragonieze.sort.specifications.PersonSpecifications;
 import java.util.Map;
 
 @RestController
-@CrossOrigin(origins = "*")
 @RequestMapping("/dragon/person")
 public class PersonController extends Controller {
     private final PersonRepository personRepository;
@@ -41,7 +42,7 @@ public class PersonController extends Controller {
     @Transactional
     @PostMapping("/add")
     public ResponseEntity<String> addPerson(
-            @RequestHeader(HEADER_AUTH) String header,
+            @AuthenticationPrincipal OpenAmUserPrincipal user,
             @Valid @RequestBody Person person
     ) throws JsonProcessingException {
         if (person.getLocation() != null) {
@@ -50,7 +51,7 @@ public class PersonController extends Controller {
         } else {
             person.setLocation(null);
         }
-        Person savedPerson = service.saveEntityWithUser(header, person, Person::setUser, personRepository);
+        Person savedPerson = service.saveEntityWithUser(user, person, Person::setUser, personRepository);
         messagingTemplate.convertAndSend("/topic/persons", Map.of(
                 "action", "ADD",
                 "data", new PersonDTO(savedPerson))
@@ -64,11 +65,11 @@ public class PersonController extends Controller {
     @DeleteMapping("/delete/{id}")
     @Auditable(action = "DELETE", entity = "Person")
     public ResponseEntity<String> deletePerson(
-            @RequestHeader(HEADER_AUTH) String header,
+            @AuthenticationPrincipal OpenAmUserPrincipal user,
             @PathVariable Long id
     ) {
         service.deleteEntityWithCondition(
-                header,
+                user,
                 id,
                 Person::getUser,
                 personRepository
@@ -84,7 +85,6 @@ public class PersonController extends Controller {
 
     @GetMapping("/get")
     public Page<PersonDTO> getPersons(
-            @RequestHeader(HEADER_AUTH) String header,
             @RequestParam(value = "offset", defaultValue = "0") @Min(0) Integer offset,
             @RequestParam(value = "limit", defaultValue = "5") @Min(0) @Max(100) Integer limit,
             @RequestParam(value = "sort", defaultValue = "ID_ASC") PersonSort sort,
@@ -121,11 +121,11 @@ public class PersonController extends Controller {
     @PostMapping("/update")
     @Auditable(action = "UPDATE", entity = "Person")
     public ResponseEntity<String> updatePerson(
-            @RequestHeader(HEADER_AUTH) String header,
+            @AuthenticationPrincipal OpenAmUserPrincipal user,
             @Valid @RequestBody Person person
     ) throws JsonProcessingException {
         Person updatePerson = service.updateEntityWithUser(
-                header,
+                user,
                 person,
                 person.getId(),
                 personRepository::findById,

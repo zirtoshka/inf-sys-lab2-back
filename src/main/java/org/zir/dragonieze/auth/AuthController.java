@@ -19,88 +19,11 @@ import org.zir.dragonieze.user.UserRepository;
 @RestController
 @RequestMapping("/dragon/auth")
 @AllArgsConstructor
-@CrossOrigin(origins = "*")
 public class AuthController {
-
-    private final AuthenticationManager authenticationManager;
-    private final JwtUtil jwtUtil;
-    private final UserRepository userRepository;
-    private final PasswordEncoder passwordEncoder;
-
     @MessageMapping("/update") // Клиент отправляет сообщение на "/app/update"
     @SendTo("/topic/updates") // Сообщение транслируется всем, кто подписан на "/topic/updates"
     public String sendNotification(String message) {
         return message; // Например, строка JSON-данных об изменении
     }
 
-    @PostMapping("/authenticate")
-    public AuthResponse authenticate(@RequestBody AuthRequest authRequest) throws JoseException {
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(authRequest.getUsername(), authRequest.getPassword()));
-        var user = userRepository.findByUsername(authRequest.getUsername())
-                .orElseThrow();
-        var jwtToken = jwtUtil.generateToken(user);
-        return AuthResponse.builder()
-                .token(jwtToken)
-                .build();
-    }
-
-
-    @Transactional
-    @PostMapping("/reg")
-    public AuthResponse register(
-            @RequestBody RegisterRequest request
-    ) {
-        if (userRepository.findByUsername(request.getUsername()).isPresent()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Username is already in use");
-        }
-        System.out.println(request.getUsername());
-        var user = User.builder()
-                .username(request.getUsername())
-                .password(passwordEncoder.encode(request.getPassword()))
-                .role(Role.USER)
-                .build();
-        userRepository.save(user);
-        String jwtToken;
-        try {
-            jwtToken = jwtUtil.generateToken(user);
-            return AuthResponse.builder()
-                    .token(jwtToken)
-                    .build();
-        } catch (JoseException e) {
-            e.printStackTrace();
-            //todo
-            return AuthResponse.builder().token(null).build();
-        }
-
-    }
-
-
-    @Transactional
-    @PostMapping("/regAdmin")
-    public AuthResponse registerAdmin(
-            @RequestBody RegisterRequest request
-    ) {
-        if (userRepository.findByUsername(request.getUsername()).isPresent()) {
-            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Username is already in use");
-        }
-        System.out.println(request.getUsername());
-        var user = User.builder()
-                .username(request.getUsername())
-                .password(passwordEncoder.encode(request.getPassword()))
-                .role(Role.ADMIN)
-                .build();
-        userRepository.save(user);
-        String jwtToken;
-        try {
-            jwtToken = jwtUtil.generateToken(user);
-            return AuthResponse.builder()
-                    .token(jwtToken)
-                    .build();
-        } catch (JoseException e) {
-            e.printStackTrace();
-            //todo
-            return AuthResponse.builder().token(null).build();
-        }
-    }
 }

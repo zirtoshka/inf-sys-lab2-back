@@ -9,6 +9,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.zir.dragonieze.dragon.DragonHead;
@@ -16,6 +17,7 @@ import org.zir.dragonieze.dragon.repo.DragonHeadRepository;
 import org.zir.dragonieze.dto.DragonCaveDTO;
 import org.zir.dragonieze.dto.DragonHeadDTO;
 import org.zir.dragonieze.log.Auditable;
+import org.zir.dragonieze.openam.auth.OpenAmUserPrincipal;
 import org.zir.dragonieze.services.BaseService;
 import org.zir.dragonieze.sort.HeadSort;
 import org.zir.dragonieze.sort.specifications.HeadSpecifications;
@@ -23,7 +25,6 @@ import org.zir.dragonieze.sort.specifications.HeadSpecifications;
 import java.util.Map;
 
 @RestController
-@CrossOrigin(origins = "*")
 @RequestMapping("/dragon/head")
 public class DragonHeadController extends Controller {
     private final DragonHeadRepository headRepository;
@@ -38,10 +39,10 @@ public class DragonHeadController extends Controller {
     @Transactional
     @PostMapping("/add")
     public ResponseEntity<String> addHead(
-            @RequestHeader(HEADER_AUTH) String header,
+            @AuthenticationPrincipal OpenAmUserPrincipal user,
             @Valid @RequestBody DragonHead head
     ) throws JsonProcessingException {
-        DragonHead savedHead = service.saveEntityWithUser(header, head, DragonHead::setUser, headRepository);
+        DragonHead savedHead = service.saveEntityWithUser(user, head, DragonHead::setUser, headRepository);
         messagingTemplate.convertAndSend("/topic/heads", Map.of(
                 "action", "ADD",
                 "data", new DragonHeadDTO(savedHead))
@@ -54,11 +55,11 @@ public class DragonHeadController extends Controller {
     @DeleteMapping("/delete/{id}")
     @Auditable(action = "DELETE", entity = "DragonHead")
     public ResponseEntity<String> deleteHead(
-            @RequestHeader(HEADER_AUTH) String header,
+            @AuthenticationPrincipal OpenAmUserPrincipal user,
             @PathVariable Long id
     ) {
         service.deleteEntityWithCondition(
-                header,
+                user,
                 id,
                 DragonHead::getUser,
                 headRepository
@@ -74,7 +75,6 @@ public class DragonHeadController extends Controller {
 
     @GetMapping("/get")
     public Page<DragonHeadDTO> getHeads(
-            @RequestHeader(HEADER_AUTH) String header,
             @RequestParam(value = "offset", defaultValue = "0") @Min(0) Integer offset,
             @RequestParam(value = "limit", defaultValue = "5") @Min(0) @Max(100) Integer limit,
             @RequestParam(value = "sort", defaultValue = "ID_ASC") HeadSort sort,
@@ -99,11 +99,11 @@ public class DragonHeadController extends Controller {
     @PostMapping("/update")
     @Auditable(action = "UPDATE", entity = "DragonHead")
     public ResponseEntity<String> updateHead(
-            @RequestHeader(HEADER_AUTH) String header,
+            @AuthenticationPrincipal OpenAmUserPrincipal user,
             @Valid @RequestBody DragonHead head
     ) throws JsonProcessingException {
         DragonHead updateHead = service.updateEntityWithUser(
-                header,
+                user,
                 head,
                 head.getId(),
                 headRepository::findById,

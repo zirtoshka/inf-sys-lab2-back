@@ -5,6 +5,7 @@ import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.zir.dragonieze.openam.auth.OpenAmUserPrincipal;
 import org.zir.dragonieze.services.BaseService;
 import org.zir.dragonieze.user.User;
 
@@ -19,10 +20,10 @@ public class AuditLogService {
 
     private final BaseService baseService;
 
-    public void logAction(String header, String entityName, Long entityId,
+    public void logAction(OpenAmUserPrincipal principal, String entityName, Long entityId,
                           String action, Object details) {
         try {
-            User user = baseService.getUserFromHeader(header);
+            User user = principal.getUser();
 
             String detailsJson = null;
             if (details != null) {

@@ -9,6 +9,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
@@ -16,6 +17,7 @@ import org.zir.dragonieze.dragon.DragonCave;
 import org.zir.dragonieze.dragon.repo.DragonCaveRepository;
 import org.zir.dragonieze.dto.DragonCaveDTO;
 import org.zir.dragonieze.log.Auditable;
+import org.zir.dragonieze.openam.auth.OpenAmUserPrincipal;
 import org.zir.dragonieze.services.BaseService;
 import org.zir.dragonieze.sort.CaveSort;
 import org.zir.dragonieze.sort.specifications.CaveSpecifications;
@@ -26,8 +28,6 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/dragon/cave")
-@CrossOrigin(origins = "*")
-
 public class DragonCaveController extends Controller {
     private final DragonCaveRepository caveRepository;
     private final CaveSpecifications caveSpecifications;
@@ -41,10 +41,10 @@ public class DragonCaveController extends Controller {
     @Transactional
     @PostMapping("/add")
     public ResponseEntity<String> addCave(
-            @RequestHeader(HEADER_AUTH) String header,
+            @AuthenticationPrincipal OpenAmUserPrincipal user,
             @Valid @RequestBody DragonCave cave
     ) throws JsonProcessingException {
-        DragonCave savedCave = service.saveEntityWithUser(header, cave, DragonCave::setUser, caveRepository);
+        DragonCave savedCave = service.saveEntityWithUser(user, cave, DragonCave::setUser, caveRepository);
         messagingTemplate.convertAndSend("/topic/caves", Map.of(
                 "action", "ADD",
                 "data", new DragonCaveDTO(savedCave))
@@ -57,11 +57,11 @@ public class DragonCaveController extends Controller {
     @DeleteMapping("/delete/{id}")
     @Auditable(action = "DELETE", entity = "DragonCave")
     public ResponseEntity<String> deleteCave(
-            @RequestHeader(HEADER_AUTH) String header,
+            @AuthenticationPrincipal OpenAmUserPrincipal user,
             @PathVariable Long id
     ) {
         service.deleteEntityWithCondition(
-                header,
+                user,
                 id,
                 DragonCave::getUser,
                 caveRepository
@@ -76,7 +76,6 @@ public class DragonCaveController extends Controller {
 
     @GetMapping("/get")
     public Page<DragonCaveDTO> getCaves(
-            @RequestHeader(HEADER_AUTH) String header,
             @RequestParam(value = "offset", defaultValue = "0") @Min(0) Integer offset,
             @RequestParam(value = "limit", defaultValue = "5") @Min(0) @Max(100) Integer limit,
             @RequestParam(value = "sort", defaultValue = "ID_ASC") CaveSort sort,
@@ -104,11 +103,11 @@ public class DragonCaveController extends Controller {
     @PostMapping("/update")
     @Auditable(action = "UPDATE", entity = "DragonCave")
     public ResponseEntity<String> updateCave(
-            @RequestHeader(HEADER_AUTH) String header,
+            @AuthenticationPrincipal OpenAmUserPrincipal user,
             @Valid @RequestBody DragonCave cave
     ) throws JsonProcessingException {
         DragonCave updatedCave = service.updateEntityWithUser(
-                header,
+                user,
                 cave,
                 cave.getId(),
                 caveRepository::findById,

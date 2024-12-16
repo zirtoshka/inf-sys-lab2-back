@@ -7,6 +7,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.zir.dragonieze.admin.AdminApplication;
 import org.zir.dragonieze.admin.UpdateAppStatusRequest;
 import org.zir.dragonieze.dragon.repo.AppRepository;
@@ -16,6 +17,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.zir.dragonieze.dto.ApplicationDTO;
 
+import org.zir.dragonieze.openam.auth.OpenAmUserPrincipal;
 import org.zir.dragonieze.services.AdminService;
 import org.zir.dragonieze.services.BaseService;
 import org.zir.dragonieze.sort.CaveSort;
@@ -26,7 +28,6 @@ import java.time.LocalDateTime;
 import java.util.Map;
 
 @RestController
-@CrossOrigin(origins = "*")
 @RequestMapping("dragon/app")
 public class ApplicationController extends Controller {
     private final AppRepository appRepository;
@@ -39,11 +40,11 @@ public class ApplicationController extends Controller {
         this.adminService = adminService;
     }
 
-    @GetMapping("/add")
+    @PostMapping("/add")
     public ResponseEntity<String> newApp(
-            @RequestHeader(HEADER_AUTH) String header
+            @AuthenticationPrincipal OpenAmUserPrincipal principal
     ) {
-        User user = service.getUserFromHeader(header);
+        User user = principal.getUser();
         AdminApplication newApp = AdminApplication.builder()
                 .createdAt(LocalDateTime.now())
                 .status(StatusApplication.NEW)
@@ -59,13 +60,12 @@ public class ApplicationController extends Controller {
     }
 
     @PostMapping("/changeStatus")
-    @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public ResponseEntity<String> changeApplicationStatus(
-            @RequestHeader(HEADER_AUTH) String header,
-            @RequestBody UpdateAppStatusRequest request
+            @RequestBody UpdateAppStatusRequest request,
+            @AuthenticationPrincipal OpenAmUserPrincipal admin
     ) {
         try {
-            adminService.changeApplicationStatus(request);
+            adminService.changeApplicationStatus(admin, request);
             ApplicationDTO app = new ApplicationDTO(appRepository.findById(request.getId()).get());
             //todo
             System.out.println(app.getStatus());
@@ -85,7 +85,6 @@ public class ApplicationController extends Controller {
     @GetMapping("/get")
     @PreAuthorize("hasAuthority('ROLE_ADMIN')")
     public Page<ApplicationDTO> getApplications(
-            @RequestHeader(HEADER_AUTH) String header,
             @RequestParam(value = "offset", defaultValue = "0") @Min(0) Integer offset,
             @RequestParam(value = "limit", defaultValue = "5") @Min(0) @Max(100) Integer limit,
             @RequestParam(value = "sort", defaultValue = "ID_ASC") CaveSort sort,
