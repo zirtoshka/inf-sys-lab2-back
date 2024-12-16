@@ -20,7 +20,8 @@ public class LocationSpecifications extends GeneralSpecification<Location> {
     }
 
     public Specification<Location> hasName(String name) {
-        return hasField("name", name);
+        return hasFieldLike("name", name);
     }
+
 
 }

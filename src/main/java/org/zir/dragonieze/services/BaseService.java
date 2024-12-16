@@ -60,6 +60,7 @@ public class BaseService {
         if ((user.getRole().equals(Role.ADMIN) && existingEntity.getCanEdit())
                 || owner.getId().equals(user.getId())) {
             // updating
+            System.out.println("Updating entity");
             updateFieldsFunction.accept(existingEntity, updatedEntity);
 
             // saving

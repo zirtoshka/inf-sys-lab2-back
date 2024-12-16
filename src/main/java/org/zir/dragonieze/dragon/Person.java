@@ -1,5 +1,6 @@
 package org.zir.dragonieze.dragon;
 
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -30,8 +31,9 @@ public class Person implements GeneralEntity {
     private Color hairColor; //Поле не может быть null
 
 
-    @ManyToOne(cascade = CascadeType.ALL, optional = true)
+    @ManyToOne
     @JoinColumn(name = "location_id")
+    @JsonBackReference
     private Location location; //Поле может быть null
 
     @Positive

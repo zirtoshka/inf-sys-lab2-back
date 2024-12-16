@@ -15,7 +15,7 @@ import java.util.List;
 @Getter
 @Setter
 @Entity
-@Table(name ="coord")
+@Table(name = "coord")
 public class Coordinates implements GeneralEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -28,6 +28,7 @@ public class Coordinates implements GeneralEntity {
     private Float y; //Значение поля должно быть больше -182, Поле не может быть null
     @NotNull
     private boolean canEdit;
+
     @Override
     public boolean getCanEdit() {
         return canEdit;
@@ -35,8 +36,6 @@ public class Coordinates implements GeneralEntity {
 
     @OneToMany(mappedBy = "coordinates", cascade = CascadeType.ALL)
     private List<Dragon> dragons = new ArrayList<>();
-
-
 
 
     @ManyToOne

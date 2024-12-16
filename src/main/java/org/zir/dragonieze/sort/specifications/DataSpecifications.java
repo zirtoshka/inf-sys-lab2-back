@@ -1,5 +1,6 @@
 package org.zir.dragonieze.sort.specifications;
 
+import jakarta.persistence.criteria.Expression;
 import jakarta.persistence.criteria.Path;
 import jakarta.persistence.criteria.Root;
 import org.springframework.data.jpa.domain.Specification;
@@ -9,7 +10,7 @@ public class DataSpecifications {
     public static <T, V> Specification<T> hasField(String fieldName, V value) {
         return (root, query, criteriaBuilder) ->
                 value == null ? null :
-                        criteriaBuilder.equal(getPath(root, fieldName), value);
+                        criteriaBuilder.equal(getPath(root, fieldName), value); //was equal
     }
 
 
@@ -25,5 +26,9 @@ public class DataSpecifications {
         return root.get(fieldName);
     }
 
-
+    public static <T> Specification<T> hasFieldLike(String fieldName, String value) {
+        return (root, query, criteriaBuilder) ->
+                value == null || value.trim().isEmpty() ? null :
+                        criteriaBuilder.like(criteriaBuilder.lower((Expression<String>) getPath(root, fieldName)), "%" + value.toLowerCase() + "%");
+    }
 }

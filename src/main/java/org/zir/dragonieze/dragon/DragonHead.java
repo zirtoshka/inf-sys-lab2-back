@@ -18,13 +18,16 @@ public class DragonHead implements GeneralEntity {
     private double eyesCount;
     @NotNull
     private boolean canEdit;
-
+    @Override
+    public boolean getCanEdit() {
+        return canEdit;
+    }
 
     @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "dragon_id")
     private Dragon dragon;
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 

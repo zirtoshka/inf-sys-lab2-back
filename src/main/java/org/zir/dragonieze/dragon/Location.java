@@ -1,5 +1,6 @@
 package org.zir.dragonieze.dragon;
 
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
@@ -31,14 +32,17 @@ public class Location implements GeneralEntity {
     @NotNull
     private boolean canEdit;
 
-    @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
-
     @Override
     public boolean getCanEdit() {
         return canEdit;
     }
+
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
+
+
     @OneToMany(mappedBy = "location")
+    @JsonManagedReference
     private List<Person> persons = new ArrayList<>();
 }

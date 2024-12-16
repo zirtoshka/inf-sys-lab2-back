@@ -38,7 +38,7 @@ public class Dragon implements GeneralEntity {
 
     @NotNull
     @ManyToOne(cascade = CascadeType.ALL, optional = false) // Много драконов могут относиться к одной пещере
-    @JoinColumn(name = "cave_id",  nullable = false)
+    @JoinColumn(name = "cave_id", nullable = false)
     private DragonCave cave; // не null
 
     @ManyToOne(cascade = CascadeType.ALL, optional = true)
@@ -70,7 +70,7 @@ public class Dragon implements GeneralEntity {
         return canEdit;
     }
 
-    public int getHeadCount(){
+    public int getHeadCount() {
         return heads.size();
     }
 }

@@ -107,15 +107,16 @@ public class DragonCaveController extends Controller {
             @RequestHeader(HEADER_AUTH) String header,
             @Valid @RequestBody DragonCave cave
     ) throws JsonProcessingException {
+        System.out.println(cave.getCanEdit());
         DragonCave updatedCave = service.updateEntityWithUser(
                 header,
                 cave,
                 cave.getId(),
                 caveRepository::findById,
                 DragonCave::getUser,
-                (old, updates) -> {
-                    old.setNumberOfTreasures(updates.getNumberOfTreasures());
-                    old.setCanEdit(updates.getCanEdit());
+                (old, updated) -> {
+                    old.setNumberOfTreasures(updated.getNumberOfTreasures());
+                    old.setCanEdit(updated.getCanEdit());
                 },
                 caveRepository
         );

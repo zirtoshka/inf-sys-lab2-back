@@ -102,15 +102,16 @@ public class DragonHeadController extends Controller {
             @RequestHeader(HEADER_AUTH) String header,
             @Valid @RequestBody DragonHead head
     ) throws JsonProcessingException {
+
         DragonHead updateHead = service.updateEntityWithUser(
                 header,
                 head,
                 head.getId(),
                 headRepository::findById,
                 DragonHead::getUser,
-                (old, updated) -> {
-                    old.setEyesCount(updated.getEyesCount());
-                    old.setCanEdit(updated.getCanEdit());
+                (old, updates) -> {
+                    old.setEyesCount(updates.getEyesCount());
+                    old.setCanEdit(updates.getCanEdit());
                 },
                 headRepository
         );

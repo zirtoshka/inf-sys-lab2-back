@@ -124,6 +124,7 @@ public class PersonController extends Controller {
             @RequestHeader(HEADER_AUTH) String header,
             @Valid @RequestBody Person person
     ) throws JsonProcessingException {
+        System.out.println("sdfsdj");
         Person updatePerson = service.updateEntityWithUser(
                 header,
                 person,
@@ -144,8 +145,9 @@ public class PersonController extends Controller {
         );
         messagingTemplate.convertAndSend("/topic/persons", Map.of(
                 "action", "UPDATE",
-                "data", updatePerson)
+                "data", new PersonDTO(updatePerson))
         );
+
         String json = service.convertToJson(new PersonDTO(updatePerson));
         return ResponseEntity.ok(json);
     }

@@ -23,15 +23,13 @@ public class DragonCave implements GeneralEntity {
     private Integer numberOfTreasures; // может быть null,  больше 0
     @NotNull
     private boolean canEdit;
-
-    @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
-
     @Override
     public boolean getCanEdit() {
         return canEdit;
     }
+    @ManyToOne
+    @JoinColumn(name = "user_id", nullable = false)
+    private User user;
 
     @OneToMany(mappedBy = "cave",cascade = CascadeType.ALL)
     private List<Dragon> dragonCaves = new ArrayList<>();

@@ -108,6 +108,7 @@ public class LocationController extends Controller {
             @RequestHeader(HEADER_AUTH) String header,
             @Valid @RequestBody Location location
     ) throws JsonProcessingException {
+        System.out.println(location.getCanEdit()+" "+location.getId());
         Location updateLocation = service.updateEntityWithUser(
                 header,
                 location,
