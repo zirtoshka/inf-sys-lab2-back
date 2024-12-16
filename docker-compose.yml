@@ -7,11 +7,45 @@ services:
       POSTGRES_USER: "user"
       POSTGRES_PASSWORD: "password"
     ports:
-      - "5432:5432"
+      - "5433:5432"
+    networks:
+      - web-network
+
   openam:
     image: "openidentityplatform/openam:latest"
+    hostname: "openam.example.org"
     container_name: openam
     ports:
       - "8080:8080"
+    depends_on:
+      - postgres
     volumes:
       - ./openam-data:/usr/openam/config
+    networks:
+      - web-network
+
+  spring:
+    build:
+      context: .
+      dockerfile: Dockerfile-dragonusiki
+    ports:
+      - "8081:8081"
+    networks:
+      - web-network
+    depends_on:
+      - postgres
+      - openam
+
+  front:
+    image: frontik:latest
+    hostname: "openam.example.org"
+    networks:
+      - web-network
+    ports:
+      - "8083:80"
+    depends_on:
+      - spring
+
+networks:
+  web-network:
+    driver: bridge

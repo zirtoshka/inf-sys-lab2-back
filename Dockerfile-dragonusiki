@@ -1,0 +1,5 @@
+FROM amazoncorretto:21-alpine-jdk
+WORKDIR /app
+COPY ./target/dragonieze-0.0.1-SNAPSHOT.jar /app/dragonieze-0.0.1-SNAPSHOT.jar
+EXPOSE 8081
+CMD ["java", "-jar", "/app/dragonieze-0.0.1-SNAPSHOT.jar"]
