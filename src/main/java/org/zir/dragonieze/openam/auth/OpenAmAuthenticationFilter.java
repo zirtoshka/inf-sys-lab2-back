@@ -1,9 +1,12 @@
-package org.zir.dragonieze;
+package org.zir.dragonieze.openam;
 
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import lombok.Setter;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -17,7 +20,9 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
 import org.springframework.security.web.context.HttpSessionSecurityContextRepository;
+import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
+import org.zir.dragonieze.user.UserRepository;
 
 import java.io.IOException;
 import java.net.URLEncoder;
@@ -26,17 +31,18 @@ import java.util.Arrays;
 import java.util.Map;
 import java.util.Optional;
 
+@Service
 public class OpenAmAuthenticationFilter extends AbstractAuthenticationProcessingFilter {
-    private final String openAmUrl = "http://openam.example.org:8080/openam";
-    private final String openAuthUrl = openAmUrl.concat("/XUI/");
+    private String openAmAuthUrl;
+    private String openAmUserInfoUrl;
 
-    private String openamRealm = "/";
+    private String openamRealm;
 
-    private final String openAmUserInfoUrl = openAmUrl.concat("/json/users?_action=idFromSession");
     private final String openAmCookieName = "iPlanetDirectoryPro";
 
-        private final String redirectUrl = "http://app.example.org:8081/protected-openam";
-//    private final String redirectUrl = "http://localhost:4200";
+    @Setter(onMethod_ = {@Autowired})
+    private UserRepository userRepository;
+
     public static final String OPENAM_AUTH_URI = "/openam-auth";
 
     public OpenAmAuthenticationFilter() {
@@ -52,9 +58,7 @@ public class OpenAmAuthenticationFilter extends AbstractAuthenticationProcessing
         Optional<Cookie> openamCookie = Arrays.stream(request.getCookies())
                 .filter(c -> c.getName().equals(openAmCookieName)).findFirst();
         if (openamCookie.isEmpty()) {
-            System.out.println("Cookie not found");
-            response.sendRedirect(openAuthUrl + "?goto=" + URLEncoder.encode(redirectUrl, StandardCharsets.UTF_8)
-                    + "&realm=".concat(URLEncoder.encode(openamRealm, StandardCharsets.UTF_8)));
+            response.sendRedirect(getOpenAmAuthUrl(request));
             return null;
         } else {
             System.out.println("cookie found");
@@ -90,4 +94,27 @@ public class OpenAmAuthenticationFilter extends AbstractAuthenticationProcessing
         this.openamRealm = openamRealm;
     }
 
+    @Value("${openam.auth.url}")
+    public void setOpenAmUrl(String openAmUrl) {
+        this.openAmAuthUrl = openAmUrl.concat("/XUI/");
+        this.openAmUserInfoUrl = openAmUrl.concat("/json/users?_action=idFromSession");
+    }
+
+    private String getFullRequestUrl(HttpServletRequest request) {
+        StringBuilder result = new StringBuilder(request.getRequestURL().toString());
+        String queryString = request.getQueryString();
+
+        if (queryString != null) {
+            result.append("?").append(queryString);
+        }
+
+        return result.toString();
+    }
+
+    public String getOpenAmAuthUrl(HttpServletRequest request) {
+        String redirectUrl = getFullRequestUrl(request);
+        return openAmAuthUrl + "?goto=" + URLEncoder.encode(redirectUrl, StandardCharsets.UTF_8)
+                + "&realm=" + URLEncoder.encode(openamRealm, StandardCharsets.UTF_8)
+                + "#login";
+    }
 }
