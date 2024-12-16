@@ -1,4 +1,4 @@
-package org.zir.dragonieze;
+package org.zir.dragonieze.openam;
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
