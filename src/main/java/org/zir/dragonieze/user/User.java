@@ -18,18 +18,14 @@ import java.util.List;
 @Setter
 @Builder
 @Table(name="usr")
-public class User implements UserDetails{
+public class User {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
     @NotBlank
+    @Column(unique = true)
     private String username;
-    private String password;
-    @Enumerated(EnumType.STRING)
-    private Role role;
-
-    @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        return List.of((GrantedAuthority) () -> "ROLE_"+role.name());
-    }
+    @NotBlank
+    @Column(unique = true)
+    private String dn;
 }

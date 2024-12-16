@@ -6,6 +6,7 @@ import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.springframework.stereotype.Component;
+import org.zir.dragonieze.openam.auth.OpenAmUserPrincipal;
 
 
 @Aspect
@@ -31,19 +32,19 @@ public class AuditAspect {
             Object[] args = joinPoint.getArgs();
             Long entityId = null;
             Object entity = null;
-            String header = null;
+            OpenAmUserPrincipal principal = null;
             for (Object arg : args) {
                 if (arg instanceof Long) {
                     entityId = (Long) arg;
                 } else if (arg != null && arg.getClass().getSimpleName().equalsIgnoreCase(auditable.entity())) {
                     entity = arg;
-                } else if (arg instanceof String && ((String) arg).startsWith("Bearer ")) {
-                    header = (String) arg;
+                } else if (arg instanceof OpenAmUserPrincipal) {
+                    principal = (OpenAmUserPrincipal) arg;
                 }
             }
-            if (header != null) {
+            if (principal != null) {
                 auditLogService.logAction(
-                        header,
+                        principal,
                         auditable.entity(),
                         entityId != null ? entityId : getIdFromEntity(entity),
                         auditable.action(),

@@ -10,6 +10,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.zir.dragonieze.dragon.Coordinates;
@@ -17,6 +18,7 @@ import org.zir.dragonieze.dragon.GeneralEntity;
 import org.zir.dragonieze.dragon.repo.CoordinatesRepository;
 import org.zir.dragonieze.dto.CoordinatesDTO;
 import org.zir.dragonieze.log.Auditable;
+import org.zir.dragonieze.openam.auth.OpenAmUserPrincipal;
 import org.zir.dragonieze.services.BaseService;
 import org.zir.dragonieze.sort.CoordinatesSort;
 import org.zir.dragonieze.sort.specifications.CoordinatesSpecifications;
@@ -25,7 +27,6 @@ import java.util.Map;
 
 
 @RestController
-@CrossOrigin(origins = "*")
 @RequestMapping("/dragon/coord")
 public class CoordinatesController extends Controller {
     private final CoordinatesRepository coordinatesRepository;
@@ -44,10 +45,10 @@ public class CoordinatesController extends Controller {
     @Transactional
     @PostMapping("/add")
     public ResponseEntity<String> addCoordinates(
-            @RequestHeader(HEADER_AUTH) String header,
+            @AuthenticationPrincipal OpenAmUserPrincipal user,
             @Valid @RequestBody Coordinates coordinates
     ) throws JsonProcessingException {
-        Coordinates savedCoordinates = service.saveEntityWithUser(header, coordinates, Coordinates::setUser, coordinatesRepository);
+        Coordinates savedCoordinates = service.saveEntityWithUser(user, coordinates, Coordinates::setUser, coordinatesRepository);
         String json = service.convertToJson(new CoordinatesDTO(savedCoordinates));
         messagingTemplate.convertAndSend("/topic/coordinates", Map.of(
                 "action", "ADD",
@@ -60,11 +61,11 @@ public class CoordinatesController extends Controller {
     @DeleteMapping("/delete/{id}")
     @Auditable(action = "DELETE", entity = "Coordinates")
     public ResponseEntity<String> deleteCoordinates(
-            @RequestHeader(HEADER_AUTH) String header,
+            @AuthenticationPrincipal OpenAmUserPrincipal user,
             @PathVariable Long id
     ) {
         service.deleteEntityWithCondition(
-                header,
+                user,
                 id,
                 Coordinates::getUser,
                 coordinatesRepository
@@ -81,7 +82,6 @@ public class CoordinatesController extends Controller {
 
     @GetMapping("/get")
     public Page<CoordinatesDTO> getAllCoordinates(
-            @RequestHeader(HEADER_AUTH) String header,
             @RequestParam(value = "offset", defaultValue = "0") @Min(0) Integer offset,
             @RequestParam(value = "limit", defaultValue = "5") @Min(0) @Max(100) Integer limit,
             @RequestParam(value = "sort", defaultValue = "ID_ASC") CoordinatesSort sort,
@@ -110,11 +110,11 @@ public class CoordinatesController extends Controller {
     @PostMapping("/update")
     @Auditable(action = "UPDATE", entity = "Coordinates")
     public ResponseEntity<String> updateCoordinates(
-            @RequestHeader(HEADER_AUTH) String header,
+            @AuthenticationPrincipal OpenAmUserPrincipal user,
             @Valid @RequestBody Coordinates coordinates
     ) throws JsonProcessingException {
         Coordinates updateCoordinates = service.updateEntityWithUser(
-                header,
+                user,
                 coordinates,
                 coordinates.getId(),
                 coordinatesRepository::findById,

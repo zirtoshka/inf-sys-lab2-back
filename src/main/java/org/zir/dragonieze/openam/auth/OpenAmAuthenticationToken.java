@@ -1,15 +1,24 @@
-package org.zir.dragonieze.openam;
+package org.zir.dragonieze.openam.auth;
+
 import org.springframework.security.authentication.AbstractAuthenticationToken;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.zir.dragonieze.user.Role;
+import org.zir.dragonieze.user.User;
 
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.Collections;
+import java.util.stream.Collectors;
 
 public class OpenAmAuthenticationToken extends AbstractAuthenticationToken {
-    private final String username;
+    private final OpenAmUserPrincipal user;
 
-    public OpenAmAuthenticationToken(String username) {
-        super(Collections.singleton(new SimpleGrantedAuthority("ROLE_USER")));
-        this.username = username;
+    public OpenAmAuthenticationToken(OpenAmUserPrincipal user, Role[] roles) {
+        super(Arrays.stream(roles)
+                .map(r -> new SimpleGrantedAuthority(r.getFullName()))
+                .collect(Collectors.toUnmodifiableSet())
+        );
+        this.user = user;
     }
 
     @Override
@@ -19,6 +28,6 @@ public class OpenAmAuthenticationToken extends AbstractAuthenticationToken {
 
     @Override
     public Object getPrincipal() {
-        return username;
+        return user;
     }
 }

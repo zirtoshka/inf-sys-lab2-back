@@ -1,0 +1,17 @@
+version: "3.9"
+services:
+  postgres:
+    image: postgres:13.3
+    environment:
+      POSTGRES_DB: "studs"
+      POSTGRES_USER: "user"
+      POSTGRES_PASSWORD: "password"
+    ports:
+      - "5432:5432"
+  openam:
+    image: "openidentityplatform/openam:latest"
+    container_name: openam
+    ports:
+      - "8080:8080"
+    volumes:
+      - ./openam-data:/usr/openam/config

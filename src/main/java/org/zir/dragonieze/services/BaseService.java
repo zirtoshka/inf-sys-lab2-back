@@ -8,8 +8,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
-import org.zir.dragonieze.auth.JwtUtil;
 import org.zir.dragonieze.dragon.GeneralEntity;
+import org.zir.dragonieze.openam.api.OpenAmRestApiClient;
+import org.zir.dragonieze.openam.auth.OpenAmUserPrincipal;
 import org.zir.dragonieze.user.Role;
 import org.zir.dragonieze.user.User;
 import org.zir.dragonieze.user.UserRepository;
@@ -20,24 +21,15 @@ import java.util.function.Function;
 
 @Service
 public class BaseService {
-
-    protected final JwtUtil jwtUtil;
     protected final UserRepository userRepository;
 
     @Autowired
-    public BaseService(JwtUtil jwtUtil, UserRepository userRepository) {
-        this.jwtUtil = jwtUtil;
+    public BaseService(UserRepository userRepository) {
         this.userRepository = userRepository;
     }
 
     @Transactional
-    public <T> T saveEntityWithUser(String header, T entity, BiConsumer<T, User> setUserFunction, JpaRepository<T, ?> repository) {
-        User user = getUserFromHeader(header);
-        return saveEntityWithUser(entity, user, setUserFunction, repository);
-    }
-
-    @Transactional
-    public <T extends GeneralEntity> T updateEntityWithUser(String header,
+    public <T extends GeneralEntity> T updateEntityWithUser(OpenAmUserPrincipal principal,
                                                             T updatedEntity,
                                                             Long updatedEntityId,
                                                             Function<Long, Optional<T>> findByIdFunction,
@@ -45,7 +37,7 @@ public class BaseService {
                                                             BiConsumer<T, T> updateFieldsFunction,
                                                             JpaRepository<T, ?> repository) {
 
-        User user = getUserFromHeader(header);
+        User user = principal.getUser();
 
         //check existing
         Optional<T> existingEntityOptional = findByIdFunction.apply(updatedEntityId);
@@ -57,8 +49,7 @@ public class BaseService {
 
         // check for update
         User owner = getOwnerFunction.apply(existingEntity);
-        if ((user.getRole().equals(Role.ADMIN) && existingEntity.getCanEdit())
-                || owner.getId().equals(user.getId())) {
+        if ((principal.hasRole(Role.ADMIN) && existingEntity.getCanEdit()) || owner.getId().equals(user.getId())) {
             // updating
             System.out.println("Updating entity");
             updateFieldsFunction.accept(existingEntity, updatedEntity);
@@ -68,26 +59,24 @@ public class BaseService {
         } else {
             throw new ResponseStatusException(HttpStatus.FORBIDDEN, "You don't have permission to update this entity");
         }
-
-
     }
 
 
     @Transactional
     public <T extends GeneralEntity> void deleteEntityWithCondition(
-            String header,
+            OpenAmUserPrincipal principal,
             Long entityId,
             Function<T, User> getOwnerFunction,
             JpaRepository<T, Long> repository
     ) {
-        User user = getUserFromHeader(header);
+        User user = principal.getUser();
 
         T entity = repository.findById(entityId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Entity not found"));
 
         User owner = getOwnerFunction.apply(entity);
 
-        if ((user.getRole().equals(Role.ADMIN) && entity.getCanEdit())
+        if ((principal.hasRole(Role.ADMIN) && entity.getCanEdit())
                 || owner.getId().equals(user.getId())) {
             repository.delete(entity);
         } else {
@@ -96,20 +85,9 @@ public class BaseService {
     }
 
 
-    String getUsername(String header, JwtUtil jwtUtil) {
-        String jwt = header.substring(7);
-        String username = jwtUtil.extractUsername(jwt);
-        return username;
-    }
 
-    public User getUserFromHeader(String header) {
-        String username = getUsername(header, jwtUtil);
-        return userRepository.findByUsername(username)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "User not found"));
-    }
-
-    public <T> T saveEntityWithUser(T entity, User user, BiConsumer<T, User> setUserFunction, JpaRepository<T, ?> repository) {
-        setUserFunction.accept(entity, user);
+    public <T> T saveEntityWithUser(OpenAmUserPrincipal user, T entity, BiConsumer<T, User> setUserFunction, JpaRepository<T, ?> repository) {
+        setUserFunction.accept(entity, user.getUser());
         return repository.save(entity);
     }
 

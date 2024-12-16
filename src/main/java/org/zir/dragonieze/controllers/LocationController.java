@@ -10,12 +10,14 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.zir.dragonieze.dragon.Location;
 import org.zir.dragonieze.dragon.repo.LocationRepository;
 import org.zir.dragonieze.dto.LocationDTO;
 import org.zir.dragonieze.log.Auditable;
+import org.zir.dragonieze.openam.auth.OpenAmUserPrincipal;
 import org.zir.dragonieze.services.BaseService;
 import org.zir.dragonieze.sort.LocationSort;
 import org.zir.dragonieze.sort.specifications.LocationSpecifications;
@@ -23,7 +25,6 @@ import org.zir.dragonieze.sort.specifications.LocationSpecifications;
 import java.util.Map;
 
 @RestController
-@CrossOrigin(origins = "*")
 @RequestMapping("/dragon/loc")
 public class LocationController extends Controller {
     private final LocationRepository locationRepository;
@@ -39,10 +40,10 @@ public class LocationController extends Controller {
     @Transactional
     @PostMapping("/add")
     public ResponseEntity<String> addLocation(
-            @RequestHeader(HEADER_AUTH) String header,
+            @AuthenticationPrincipal OpenAmUserPrincipal user,
             @Valid @RequestBody Location location
     ) throws JsonProcessingException {
-        Location savedLocation = service.saveEntityWithUser(header, location, Location::setUser, locationRepository);
+        Location savedLocation = service.saveEntityWithUser(user, location, Location::setUser, locationRepository);
         messagingTemplate.convertAndSend("/topic/locations", Map.of(
                 "action", "ADD",
                 "data",new LocationDTO(savedLocation))
@@ -55,11 +56,11 @@ public class LocationController extends Controller {
     @DeleteMapping("/delete/{id}")
     @Auditable(action = "DELETE", entity = "Location")
     public ResponseEntity<String> deleteLocation(
-            @RequestHeader(HEADER_AUTH) String header,
+            @AuthenticationPrincipal OpenAmUserPrincipal user,
             @PathVariable Long id
     ) {
         service.deleteEntityWithCondition(
-                header,
+                user,
                 id,
                 Location::getUser,
                 locationRepository
@@ -74,7 +75,6 @@ public class LocationController extends Controller {
 
     @GetMapping("/get")
     public Page<LocationDTO> getLocations(
-            @RequestHeader(HEADER_AUTH) String header,
             @RequestParam(value = "offset", defaultValue = "0") @Min(0) Integer offset,
             @RequestParam(value = "limit", defaultValue = "5") @Min(0) @Max(100) Integer limit,
             @RequestParam(value = "sort", defaultValue = "ID_ASC") LocationSort sort,
@@ -105,12 +105,12 @@ public class LocationController extends Controller {
     @PostMapping("/update")
     @Auditable(action = "UPDATE", entity = "Location")
     public ResponseEntity<String> updateLocation(
-            @RequestHeader(HEADER_AUTH) String header,
+            @AuthenticationPrincipal OpenAmUserPrincipal user,
             @Valid @RequestBody Location location
     ) throws JsonProcessingException {
         System.out.println(location.getCanEdit()+" "+location.getId());
         Location updateLocation = service.updateEntityWithUser(
-                header,
+                user,
                 location,
                 location.getId(),
                 locationRepository::findById,

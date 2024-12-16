@@ -11,11 +11,13 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.zir.dragonieze.dragon.*;
 import org.zir.dragonieze.dto.DragonDTO;
 import org.zir.dragonieze.log.Auditable;
+import org.zir.dragonieze.openam.auth.OpenAmUserPrincipal;
 import org.zir.dragonieze.services.BaseService;
 import org.zir.dragonieze.services.DragonService;
 import org.zir.dragonieze.sort.DragonSort;
@@ -26,8 +28,6 @@ import java.time.LocalDate;
 import java.util.Map;
 
 @RestController
-@CrossOrigin(origins = "*")
-
 @RequestMapping("/dragon/dragon")
 public class DragonController extends Controller {
 
@@ -52,10 +52,10 @@ public class DragonController extends Controller {
     @Transactional
     @PostMapping("/add")
     public ResponseEntity<String> addDragon(
-            @RequestHeader(HEADER_AUTH) String header,
+            @AuthenticationPrincipal OpenAmUserPrincipal user,
             @Valid @RequestBody Dragon dragon
     ) throws JsonProcessingException {
-        DragonDTO dragonDTO = dragonService.addDragon(header, dragon);
+        DragonDTO dragonDTO = dragonService.addDragon(user, dragon);
         messagingTemplate.convertAndSend("/topic/dragons", Map.of(
                 "action", "ADD",
                 "data", dragonDTO
@@ -68,11 +68,11 @@ public class DragonController extends Controller {
     @DeleteMapping("/delete/{id}")
     @Auditable(action="DELETE", entity = "Dragon")
     public ResponseEntity<String> deleteDragon(
-            @RequestHeader(HEADER_AUTH) String header,
+            @AuthenticationPrincipal OpenAmUserPrincipal user,
             @PathVariable Long id
     ) {
         service.deleteEntityWithCondition(
-                header,
+                user,
                 id,
                 Dragon::getUser,
                 dragonService.getDragonRepository()
@@ -87,7 +87,6 @@ public class DragonController extends Controller {
 
     @GetMapping("/get")
     public Page<DragonDTO> getDragons(
-            @RequestHeader(HEADER_AUTH) String header,
             @RequestParam(value = "offset", defaultValue = "0") @Min(0) Integer offset,
             @RequestParam(value = "limit", defaultValue = "5") @Min(0) @Max(100) Integer limit,
             @RequestParam(value = "sort", defaultValue = "ID_ASC") DragonSort sort,
@@ -131,10 +130,10 @@ public class DragonController extends Controller {
     @PostMapping("/update")
     @Auditable(action="UPDATE", entity = "Dragon")
     public ResponseEntity<String> updateDragon(
-            @RequestHeader(HEADER_AUTH) String header,
+            @AuthenticationPrincipal OpenAmUserPrincipal user,
             @Valid @RequestBody Dragon dragon
     ) throws JsonProcessingException {
-        DragonDTO updateDragon = dragonService.updateDragon(header, dragon);
+        DragonDTO updateDragon = dragonService.updateDragon(user, dragon);
         messagingTemplate.convertAndSend("/topic/dragons", Map.of(
                 "action", "UPDATE",
                 "data", updateDragon)
