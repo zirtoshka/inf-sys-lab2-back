@@ -10,6 +10,8 @@ services:
       - "5433:5432"
     networks:
       - web-network
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
 
   openam:
     image: "openidentityplatform/openam:latest"
@@ -20,7 +22,7 @@ services:
     depends_on:
       - postgres
     volumes:
-      - ./openam-data:/usr/openam/config
+      - openam-data:/usr/openam/config
     networks:
       - web-network
 
@@ -49,3 +51,7 @@ services:
 networks:
   web-network:
     driver: bridge
+
+volumes:
+  openam-data: { }
+  postgres-data: { }
