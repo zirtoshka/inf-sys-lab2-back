@@ -39,7 +39,7 @@ services:
       - openam
 
   front:
-    image: frontik:latest
+    build: https://github.com/zirtoshka/inf-sys-lab1-front.git
     hostname: "openam.example.org"
     networks:
       - web-network

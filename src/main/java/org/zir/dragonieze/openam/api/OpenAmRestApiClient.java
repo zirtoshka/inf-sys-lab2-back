@@ -185,4 +185,14 @@ public class OpenAmRestApiClient {
 
         return resp.getBody().getAuthCookie();
     }
+
+    public void logoutUser(String authCookie) {
+        executeMethod(
+                OpenAmRestApiMethod.LOGOUT_USER,
+                new String[]{},
+                authCookie,
+                null,
+                new ParameterizedTypeReference<>() {}
+        );
+    }
 }
