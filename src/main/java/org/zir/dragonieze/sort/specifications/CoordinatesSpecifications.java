@@ -13,6 +13,4 @@ public class CoordinatesSpecifications extends GeneralSpecification<Coordinates>
     public Specification<Coordinates> hasY(Float y) {
         return hasField("y", y);
     }
-
-
 }

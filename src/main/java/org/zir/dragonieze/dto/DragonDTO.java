@@ -45,6 +45,7 @@ public class DragonDTO {
         this.character = dragon.getCharacter();
         this.canEdit = dragon.getCanEdit();
         this.userId = dragon.getUser().getId();
+        this.creationDate = dragon.getCreationDate();
         this.headCount = dragon.getHeadCount();
         this.headIds = dragon.getHeads().stream()
                 .map(DragonHead::getId)

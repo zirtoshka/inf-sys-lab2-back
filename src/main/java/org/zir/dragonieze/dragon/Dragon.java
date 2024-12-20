@@ -1,6 +1,7 @@
 package org.zir.dragonieze.dragon;
 
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.AllArgsConstructor;
@@ -29,15 +30,16 @@ public class Dragon implements GeneralEntity {
     private String name; // не  null, Строка не может быть пустой
 
     @NotNull
-    @ManyToOne(cascade = CascadeType.ALL, optional = false)
+    @ManyToOne(optional = false)
     @JoinColumn(name = "coord_id", nullable = false)
     private Coordinates coordinates; // не null
     @NotNull
+    @JsonFormat(pattern = "yyyy-MM-dd")
     private java.time.LocalDate creationDate = LocalDate.now(); // не null, генерироваться автоматически
 
 
     @NotNull
-    @ManyToOne(cascade = CascadeType.ALL, optional = false) // Много драконов могут относиться к одной пещере
+    @ManyToOne(optional = false) // Много драконов могут относиться к одной пещере
     @JoinColumn(name = "cave_id", nullable = false)
     private DragonCave cave; // не null
 

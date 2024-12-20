@@ -107,6 +107,11 @@ public class DragonService {
 
         Dragon savedDragon = baseService.saveEntityWithUser(user, dragon, Dragon::setUser, dragonRepository);
 
+        validatedHeads.forEach(head -> head.setDragon(savedDragon));
+
+        List<DragonHead> headsCopy = new ArrayList<>(validatedHeads);
+        headsCopy.forEach(head -> baseService.saveEntityWithUser(user, head, DragonHead::setUser, headRepository));
+
         return new DragonDTO(savedDragon);
     }
 

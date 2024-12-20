@@ -7,7 +7,7 @@ public interface GeneralEntity {
     default void setId(Long id) {
     }
 
-    ; //todo uuid
+
 
     default Long getId() {
         return null;

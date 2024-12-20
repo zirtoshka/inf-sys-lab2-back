@@ -56,7 +56,7 @@ public class ApplicationController extends Controller {
                 "action", "ADD",
                 "data", new ApplicationDTO(newApp))
         );
-        return new ResponseEntity<>("New app created", HttpStatus.CREATED);
+        return new ResponseEntity<>("{\"message\": \"New app created\"}", HttpStatus.CREATED);
     }
 
     @PostMapping("/changeStatus")
@@ -67,8 +67,6 @@ public class ApplicationController extends Controller {
         try {
             adminService.changeApplicationStatus(admin, request);
             ApplicationDTO app = new ApplicationDTO(appRepository.findById(request.getId()).get());
-            //todo
-            System.out.println(app.getStatus());
 
             messagingTemplate.convertAndSend("/topic/applications", Map.of(
                     "action", "UPDATE",

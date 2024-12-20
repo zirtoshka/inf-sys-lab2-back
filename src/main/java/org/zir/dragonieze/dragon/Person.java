@@ -9,6 +9,8 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 import org.zir.dragonieze.user.User;
 
 import java.util.ArrayList;
@@ -32,8 +34,9 @@ public class Person implements GeneralEntity {
 
 
     @ManyToOne
-    @JoinColumn(name = "location_id")
     @JsonBackReference
+    @JoinColumn(name = "location_id")
+    @OnDelete(action = OnDeleteAction.SET_NULL)
     private Location location; //Поле может быть null
 
     @Positive

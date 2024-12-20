@@ -32,6 +32,7 @@ public class AuditLog {
     @Column(nullable = false)
     private LocalDateTime changeDate;
 
+    @Column(length = 1000)
     private String details;
 
 }

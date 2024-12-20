@@ -1,8 +1,10 @@
 package org.zir.dragonieze.sort.specifications;
 
+import jakarta.persistence.criteria.Join;
 import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Component;
 import org.zir.dragonieze.dragon.Color;
+import org.zir.dragonieze.dragon.Coordinates;
 import org.zir.dragonieze.dragon.Dragon;
 import org.zir.dragonieze.dragon.DragonCharacter;
 
@@ -49,5 +51,15 @@ public class DragonSpecifications extends GeneralSpecification<Dragon> {
 
     public Specification<Dragon> hasHeads(Integer countHeads) {
         return hasField("heads.len", countHeads);
+    }
+
+    public static Specification<Dragon> coordinatesInRectangle(Double minX, Double maxX, Float minY, Float maxY) {
+        return (root, query, criteriaBuilder) -> {
+            Join<Dragon, Coordinates> coordinatesJoin = root.join("coordinates");
+            return criteriaBuilder.and(
+                    criteriaBuilder.between(coordinatesJoin.get("x"), minX, maxX),
+                    criteriaBuilder.between(coordinatesJoin.get("y"), minY, maxY)
+            );
+        };
     }
 }

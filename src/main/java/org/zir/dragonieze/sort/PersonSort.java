@@ -20,7 +20,7 @@ public enum PersonSort {
     HAIR_DESC(Sort.by(Sort.Direction.DESC, "hairColor")),
 
     LOCATION_ASC(Sort.by(Sort.Direction.ASC, "location.id")),
-    LOCATION_DESC(Sort.by(Sort.Direction.DESC, "location.id")),//todo
+    LOCATION_DESC(Sort.by(Sort.Direction.DESC, "location.id")),
 
     HEIGHT_ASC(Sort.by(Sort.Direction.ASC, "height")),
     HEIGHT_DESC(Sort.by(Sort.Direction.DESC, "height")),

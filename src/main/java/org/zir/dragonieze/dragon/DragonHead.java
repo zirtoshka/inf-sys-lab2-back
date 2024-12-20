@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
 import lombok.Getter;
 import lombok.Setter;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 import org.zir.dragonieze.user.User;
 
 @Getter
@@ -23,13 +25,12 @@ public class DragonHead implements GeneralEntity {
         return canEdit;
     }
 
-    @ManyToOne(cascade = CascadeType.ALL)
+    @ManyToOne()
     @JoinColumn(name = "dragon_id")
+    @OnDelete(action = OnDeleteAction.SET_NULL)
     private Dragon dragon;
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
-
-
 }

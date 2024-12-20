@@ -1,7 +1,6 @@
 package org.zir.dragonieze.openam;
 
 
-import jakarta.servlet.http.Cookie;
 import lombok.Setter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -23,6 +22,7 @@ import java.util.Arrays;
 public class OpenAmAuthController {
     @Setter(onMethod_ = {@Autowired})
     private OpenAmRestApiClient openAmApi;
+    private OpenAmAuthenticationFilter openAmAuthenticationFilter;
 
     @GetMapping("/status")
     public ResponseEntity<UserDTO> checkAuthStatus(@AuthenticationPrincipal OpenAmUserPrincipal user) {
@@ -37,10 +37,10 @@ public class OpenAmAuthController {
     @GetMapping("/logout")
     public ResponseEntity<Void> logout(
             @Value("openam.auth.domain") String domain,
-            @CookieValue(OpenAmAuthenticationFilter.OPENAM_COOKIE_NAME) Cookie authCookie
+            @AuthenticationPrincipal OpenAmUserPrincipal user
     ) {
-        openAmApi.logoutUser(authCookie.getValue());
-        ResponseCookie newCookie = ResponseCookie.from(authCookie.getName(), "")
+        openAmApi.logoutUser(user.getAuthCookie());
+        ResponseCookie newCookie = ResponseCookie.from(OpenAmAuthenticationFilter.OPENAM_COOKIE_NAME, "")
                 .domain(domain)
                 .path("/")
                 .build();
@@ -48,5 +48,10 @@ public class OpenAmAuthController {
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE, newCookie.toString())
                 .build();
+    }
+
+    @Autowired
+    public void setOpenAmAuthenticationFilter(OpenAmAuthenticationFilter openAmAuthenticationFilter) {
+        this.openAmAuthenticationFilter = openAmAuthenticationFilter;
     }
 }

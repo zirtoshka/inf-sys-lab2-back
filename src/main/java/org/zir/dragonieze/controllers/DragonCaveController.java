@@ -80,7 +80,7 @@ public class DragonCaveController extends Controller {
             @RequestParam(value = "limit", defaultValue = "5") @Min(0) @Max(100) Integer limit,
             @RequestParam(value = "sort", defaultValue = "ID_ASC") CaveSort sort,
             @RequestParam(value = "id", required = false) Long id,
-            @RequestParam(value = "canEdit", required = false) Boolean canEdit, //todo
+            @RequestParam(value = "canEdit", required = false) Boolean canEdit,
             @RequestParam(value = "userId", required = false) Long userId,
             @RequestParam(value = "numberOfTreasures", required = false) Integer treasure
     ) {

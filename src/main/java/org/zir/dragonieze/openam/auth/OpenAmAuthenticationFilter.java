@@ -92,7 +92,7 @@ public class OpenAmAuthenticationFilter extends AbstractAuthenticationProcessing
                     .map(Optional::get)
                     .toArray(Role[]::new);
 
-            if (!Arrays.asList(roles).contains(Role.USER)) {
+            if (!Arrays.asList(roles).contains(Role.USER)) {  //если новый пользователь нужно юзер роль дать
                 execAsAdmin(cookie -> {
                     openAmApi.addUserToGroup(cookie, dn, Role.USER.getFullName());
                     return null;

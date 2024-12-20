@@ -102,7 +102,12 @@ public class DragonController extends Controller {
             @RequestParam(value = "age", required = false) Integer age,
             @RequestParam(value = "wingspan", required = false) Long wingspan,
             @RequestParam(value = "character", required = false) DragonCharacter character,
-            @RequestParam(value = "headCount", required = false) Integer headCount
+            @RequestParam(value = "headCount", required = false) Integer headCount,
+
+            @RequestParam(value = "minX", required = false) Double minX,
+            @RequestParam(value = "maxX", required = false) Double maxX,
+            @RequestParam(value = "minY", required = false) Float minY,
+            @RequestParam(value = "maxY", required = false) Float maxY
     ){
         Specification<Dragon> specification = Specification.where(
                 dragonSpecifications.hasId(id)
@@ -118,12 +123,19 @@ public class DragonController extends Controller {
                         .and(dragonSpecifications.hasCharacter(character))
                         .and(dragonSpecifications.hasHeads(headCount))
         );
+
+        if (minX != null && maxX != null && minY != null && maxY != null) {
+            specification = specification.and(dragonSpecifications.coordinatesInRectangle(minX, maxX, minY, maxY));
+        }
+
+
         specification = canEditSpec(canEdit, specification, dragonSpecifications);
         return dragonService.getDragonRepository().findAll(
                 specification,
                 PageRequest.of(offset,limit,sort.getSortValue())
         ).map(DragonDTO::new);
     }
+
 
 
     @Transactional

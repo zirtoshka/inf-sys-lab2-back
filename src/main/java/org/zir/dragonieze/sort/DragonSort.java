@@ -13,16 +13,16 @@ public enum DragonSort {
     NAME_ASC(Sort.by(Sort.Direction.ASC, "name")),
     NAME_DESC(Sort.by(Sort.Direction.DESC, "name")),
 
-    COORD_ASC(Sort.by(Sort.Direction.ASC, "coordinates.id")),//todo
+    COORD_ASC(Sort.by(Sort.Direction.ASC, "coordinates.id")),
     COORD_DESC(Sort.by(Sort.Direction.DESC, "coordinates.id")),
 
     DATE_ASC(Sort.by(Sort.Direction.ASC, "creationDate")),
     DATE_DESC(Sort.by(Sort.Direction.DESC, "creationDate")),
 
-    CAVE_ASC(Sort.by(Sort.Direction.ASC, "cave.id")),//todo
+    CAVE_ASC(Sort.by(Sort.Direction.ASC, "cave.id")),
     CAVE_DESC(Sort.by(Sort.Direction.DESC, "cave.id")),
 
-    PERSON_ASC(Sort.by(Sort.Direction.ASC, "person.id")), //todo
+    PERSON_ASC(Sort.by(Sort.Direction.ASC, "person.id")),
     PERSON_DESC(Sort.by(Sort.Direction.DESC, "person.id")),
 
     AGE_ASC(Sort.by(Sort.Direction.ASC, "age")),
@@ -39,7 +39,7 @@ public enum DragonSort {
 
 
     HEADS_ASC(Sort.by(Sort.Direction.ASC, "heads.size")),
-    HEADS_DESC(Sort.by(Sort.Direction.DESC, "heads.size"));//todo
+    HEADS_DESC(Sort.by(Sort.Direction.DESC, "heads.size"));
 
 
 

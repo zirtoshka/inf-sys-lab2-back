@@ -48,8 +48,8 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration configuration = new CorsConfiguration();
-        configuration.setAllowedOrigins(List.of("http://openam.example.org:8083"));  //todo another path
-        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "DELETE")); //todo add methods
+        configuration.setAllowedOrigins(List.of("http://openam.example.org:8083"));
+        configuration.setAllowedMethods(Arrays.asList("GET", "POST", "DELETE"));
         configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type",
                 "Accept-API-Version", "Accept"));
         configuration.setAllowCredentials(true);
