@@ -1,27 +1,36 @@
 package org.zir.dragonieze.controllers;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import org.zir.dragonieze.dragon.*;
 import org.zir.dragonieze.dragon.repo.LocationRepository;
 import org.zir.dragonieze.dragon.repo.PersonRepository;
 import org.zir.dragonieze.dto.PersonDTO;
+import org.zir.dragonieze.imphist.LogImportHistory;
 import org.zir.dragonieze.log.Auditable;
 import org.zir.dragonieze.openam.auth.OpenAmUserPrincipal;
 import org.zir.dragonieze.services.BaseService;
 import org.zir.dragonieze.sort.PersonSort;
 import org.zir.dragonieze.sort.specifications.PersonSpecifications;
 
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -60,6 +69,53 @@ public class PersonController extends Controller {
         return ResponseEntity.ok(json);
     }
 
+
+    @LogImportHistory
+    @Transactional
+    @PostMapping("/import")
+    public ResponseEntity<String> importPersons(
+            @AuthenticationPrincipal OpenAmUserPrincipal user,
+            @RequestParam("file") MultipartFile file
+    ) {
+        System.out.println("dds");
+        try {
+            if (file.isEmpty()) {
+                return ResponseEntity.badRequest().body("File is empty");
+            }
+
+            ObjectMapper yamlMapper = new ObjectMapper(new YAMLFactory());
+            List<Person> persons = yamlMapper.readValue(file.getInputStream(), new TypeReference<List<Person>>() {
+            });
+            List<Person> savedPersons = new ArrayList<>();
+            for (Person person : persons) {
+                System.out.println("Person: " + person.getName());
+                if (person.getLocation() != null) {
+                    Location location = service.validateAndGetEntity(
+                            person.getLocation().getId(), locationRepository, "Location");
+                    person.setLocation(location);
+                } else {
+                    person.setLocation(null);
+                }
+                String uniquePassportId = ensureUniquePassportId(person.getPassportID());
+                person.setPassportID(uniquePassportId);
+
+                Person savedPerson = service.saveEntityWithUser(user, person, Person::setUser, personRepository);
+                savedPersons.add(savedPerson);
+            }
+
+            messagingTemplate.convertAndSend("/topic/persons", Map.of(
+                    "action", "IMPORT",
+                    "data", savedPersons.stream().map(PersonDTO::new).toList()
+            ));
+
+            return ResponseEntity.ok("Successfully imported " + savedPersons.size() + " persons.");
+
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to process fileeeee: " + e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Import failed: " + e.getMessage());
+        }
+    }
 
     @Transactional
     @DeleteMapping("/delete/{id}")
@@ -124,7 +180,6 @@ public class PersonController extends Controller {
             @AuthenticationPrincipal OpenAmUserPrincipal user,
             @Valid @RequestBody Person person
     ) throws JsonProcessingException {
-        System.out.println("sdfsdj");
         Person updatePerson = service.updateEntityWithUser(
                 user,
                 person,
@@ -158,5 +213,19 @@ public class PersonController extends Controller {
         }
         return service.validateAndGetEntity(location.getId(), locationRepository, "Location");
     }
+
+
+    private String ensureUniquePassportId(String passportId) {
+        String uniquePassportId = passportId;
+        int counter = 1;
+
+        while (personRepository.existsByPassportID(uniquePassportId)) {
+            uniquePassportId = passportId + "_" + counter;
+            counter++;
+        }
+
+        return uniquePassportId;
+    }
+
 
 }

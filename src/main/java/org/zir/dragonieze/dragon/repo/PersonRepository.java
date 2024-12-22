@@ -9,4 +9,6 @@ import java.util.List;
 public interface PersonRepository extends JpaRepository<Person, Long>, JpaSpecificationExecutor<Person> {
     List<Person> findByUserId(Long userId);
 
+    boolean existsByPassportID(String passportID);
+
 }
