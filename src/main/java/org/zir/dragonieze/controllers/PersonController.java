@@ -73,20 +73,24 @@ public class PersonController extends Controller {
     @LogImportHistory
     @Transactional
     @PostMapping("/import")
-    public ResponseEntity<String> importPersons(
+    public ResponseEntity<Map<String, Object>> importPersons(
             @AuthenticationPrincipal OpenAmUserPrincipal user,
             @RequestParam("file") MultipartFile file
     ) {
         System.out.println("dds");
         try {
             if (file.isEmpty()) {
-                return ResponseEntity.badRequest().body("File is empty");
+                return ResponseEntity.badRequest().body(Map.of(
+                        "message", "File is empty",
+                        "importedCount", 0
+                ));
             }
 
             ObjectMapper yamlMapper = new ObjectMapper(new YAMLFactory());
             List<Person> persons = yamlMapper.readValue(file.getInputStream(), new TypeReference<List<Person>>() {
             });
             List<Person> savedPersons = new ArrayList<>();
+            int savedCount = 0;
             for (Person person : persons) {
                 System.out.println("Person: " + person.getName());
                 if (person.getLocation() != null) {
@@ -101,6 +105,7 @@ public class PersonController extends Controller {
 
                 Person savedPerson = service.saveEntityWithUser(user, person, Person::setUser, personRepository);
                 savedPersons.add(savedPerson);
+                savedCount++;
             }
 
             messagingTemplate.convertAndSend("/topic/persons", Map.of(
@@ -108,12 +113,19 @@ public class PersonController extends Controller {
                     "data", savedPersons.stream().map(PersonDTO::new).toList()
             ));
 
-            return ResponseEntity.ok("Successfully imported " + savedPersons.size() + " persons.");
-
+            return ResponseEntity.ok(Map.of(
+                    "message", "Successfully imported persons",
+                    "importedCount", savedCount
+            ));
         } catch (IOException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to process fileeeee: " + e.getMessage());
-        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Import failed: " + e.getMessage());
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
+                    "message", "Failed to process file: " + e.getMessage(),
+                    "importedCount", 0
+            ));        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
+                    "message", "Import failed: " + e.getMessage(),
+                    "importedCount", 0
+            ));
         }
     }
 
