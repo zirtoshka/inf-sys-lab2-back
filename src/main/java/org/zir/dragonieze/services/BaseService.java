@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 import org.zir.dragonieze.dragon.GeneralEntity;
@@ -63,7 +64,7 @@ public class BaseService {
     }
 
 
-    @Transactional
+    @Transactional(propagation = Propagation.MANDATORY)
     public <T extends GeneralEntity> void deleteEntityWithCondition(
             OpenAmUserPrincipal principal,
             Long entityId,
@@ -85,13 +86,13 @@ public class BaseService {
         }
     }
 
-
-
+    @Transactional(propagation = Propagation.MANDATORY)
     public <T> T saveEntityWithUser(OpenAmUserPrincipal user, T entity, BiConsumer<T, User> setUserFunction, JpaRepository<T, ?> repository) {
         setUserFunction.accept(entity, user.getUser());
         return repository.save(entity);
     }
 
+    @Transactional(propagation = Propagation.MANDATORY)
     public <T> T validateAndGetEntity(
             Long id, JpaRepository<T, Long> repository, String entityType
     ) {

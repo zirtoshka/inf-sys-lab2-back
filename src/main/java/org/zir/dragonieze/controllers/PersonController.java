@@ -13,7 +13,10 @@ import org.springframework.data.jpa.domain.Specification;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.retry.annotation.Backoff;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.transaction.annotation.Isolation;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -25,10 +28,13 @@ import org.zir.dragonieze.imphist.LogImportHistory;
 import org.zir.dragonieze.log.Auditable;
 import org.zir.dragonieze.openam.auth.OpenAmUserPrincipal;
 import org.zir.dragonieze.services.BaseService;
+import org.zir.dragonieze.services.PersonService;
 import org.zir.dragonieze.sort.PersonSort;
 import org.zir.dragonieze.sort.specifications.PersonSpecifications;
+import org.springframework.retry.annotation.Retryable;
 
 import java.io.IOException;
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -39,27 +45,32 @@ public class PersonController extends Controller {
     private final PersonRepository personRepository;
     private final LocationRepository locationRepository;
     private final PersonSpecifications personSpecifications;
+    private final PersonService personService;
 
 
-    public PersonController(BaseService service, PersonRepository personRepository, LocationRepository locationRepository, SimpMessagingTemplate messagingTemplate, PersonSpecifications personSpecifications) {
+    public PersonController(BaseService service, PersonRepository personRepository, LocationRepository locationRepository, SimpMessagingTemplate messagingTemplate, PersonSpecifications personSpecifications, PersonService personService) {
         super(service, messagingTemplate);
         this.personRepository = personRepository;
         this.locationRepository = locationRepository;
         this.personSpecifications = personSpecifications;
+        this.personService = personService;
     }
 
-    @Transactional
+    @Retryable(
+            value = {SQLException.class, org.springframework.dao.ConcurrencyFailureException.class, org.springframework.transaction.TransactionSystemException.class},
+            maxAttempts = 3,
+            backoff = @Backoff(delay = 500, maxDelay = 5000, multiplier = 2.0, random = true)
+    )
+    @Transactional(isolation = Isolation.SERIALIZABLE)
     @PostMapping("/add")
     public ResponseEntity<String> addPerson(
             @AuthenticationPrincipal OpenAmUserPrincipal user,
             @Valid @RequestBody Person person
     ) throws JsonProcessingException {
-        if (person.getLocation() != null) {
-            Location location = service.validateAndGetEntity(person.getLocation().getId(), locationRepository, "Location");
-            person.setLocation(location);
-        } else {
-            person.setLocation(null);
-        }
+        person = personService.setLocationForPerson(person);
+        String uniquePassportId = personService.ensureUniquePassportId(person.getPassportID());
+        person.setPassportID(uniquePassportId);
+
         Person savedPerson = service.saveEntityWithUser(user, person, Person::setUser, personRepository);
         messagingTemplate.convertAndSend("/topic/persons", Map.of(
                 "action", "ADD",
@@ -70,14 +81,18 @@ public class PersonController extends Controller {
     }
 
 
+    @Retryable(
+            value = {SQLException.class, org.springframework.dao.ConcurrencyFailureException.class, org.springframework.transaction.TransactionSystemException.class},
+            maxAttempts = 3,
+            backoff = @Backoff(delay = 500, maxDelay = 5000, multiplier = 2.0, random = true)
+    )
     @LogImportHistory
-    @Transactional
+    @Transactional(isolation = Isolation.SERIALIZABLE)
     @PostMapping("/import")
     public ResponseEntity<Map<String, Object>> importPersons(
             @AuthenticationPrincipal OpenAmUserPrincipal user,
             @RequestParam("file") MultipartFile file
     ) {
-        System.out.println("dds");
         try {
             if (file.isEmpty()) {
                 return ResponseEntity.badRequest().body(Map.of(
@@ -85,7 +100,6 @@ public class PersonController extends Controller {
                         "importedCount", 0
                 ));
             }
-
             ObjectMapper yamlMapper = new ObjectMapper(new YAMLFactory());
             List<Person> persons = yamlMapper.readValue(file.getInputStream(), new TypeReference<List<Person>>() {
             });
@@ -93,14 +107,9 @@ public class PersonController extends Controller {
             int savedCount = 0;
             for (Person person : persons) {
                 System.out.println("Person: " + person.getName());
-                if (person.getLocation() != null) {
-                    Location location = service.validateAndGetEntity(
-                            person.getLocation().getId(), locationRepository, "Location");
-                    person.setLocation(location);
-                } else {
-                    person.setLocation(null);
-                }
-                String uniquePassportId = ensureUniquePassportId(person.getPassportID());
+                person = personService.setLocationForPerson(person);
+
+                String uniquePassportId = personService.ensureUniquePassportId(person.getPassportID());
                 person.setPassportID(uniquePassportId);
 
                 Person savedPerson = service.saveEntityWithUser(user, person, Person::setUser, personRepository);
@@ -121,15 +130,16 @@ public class PersonController extends Controller {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
                     "message", "Failed to process file: " + e.getMessage(),
                     "importedCount", 0
-            ));        } catch (Exception e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
-                    "message", "Import failed: " + e.getMessage(),
-                    "importedCount", 0
             ));
         }
     }
 
-    @Transactional
+    @Retryable(
+            value = {SQLException.class, org.springframework.dao.ConcurrencyFailureException.class, org.springframework.transaction.TransactionSystemException.class},
+            maxAttempts = 3,
+            backoff = @Backoff(delay = 500, maxDelay = 5000, multiplier = 2.0, random = true)
+    )
+    @Transactional(isolation = Isolation.SERIALIZABLE)
     @DeleteMapping("/delete/{id}")
     @Auditable(action = "DELETE", entity = "Person")
     public ResponseEntity<String> deletePerson(
@@ -151,6 +161,7 @@ public class PersonController extends Controller {
         );
     }
 
+    @Transactional
     @GetMapping("/get")
     public Page<PersonDTO> getPersons(
             @RequestParam(value = "offset", defaultValue = "0") @Min(0) Integer offset,
@@ -184,14 +195,21 @@ public class PersonController extends Controller {
                 .map(PersonDTO::new);
     }
 
-
-    @Transactional
+    @Retryable(
+            value = {SQLException.class, org.springframework.dao.ConcurrencyFailureException.class, org.springframework.transaction.TransactionSystemException.class},
+            maxAttempts = 3,
+            backoff = @Backoff(delay = 500, maxDelay = 5000, multiplier = 2.0, random = true)
+    )
+    @Transactional(isolation = Isolation.REPEATABLE_READ)
     @PostMapping("/update")
     @Auditable(action = "UPDATE", entity = "Person")
     public ResponseEntity<String> updatePerson(
             @AuthenticationPrincipal OpenAmUserPrincipal user,
             @Valid @RequestBody Person person
     ) throws JsonProcessingException {
+        String uniquePassportId = personService.ensureUniquePassportId(person.getPassportID());
+        person.setPassportID(uniquePassportId);
+
         Person updatePerson = service.updateEntityWithUser(
                 user,
                 person,
@@ -202,7 +220,7 @@ public class PersonController extends Controller {
                     old.setName(updated.getName());
                     old.setEyeColor(updated.getEyeColor());
                     old.setHairColor(updated.getHairColor());
-                    old.setLocation(validateAndRetrieveLocation(updated.getLocation()));
+                    old.setLocation(personService.validateAndRetrieveLocation(updated.getLocation()));
                     old.setHeight(updated.getHeight());
                     old.setPassportID(updated.getPassportID());
                     old.setNationality(updated.getNationality());
@@ -219,25 +237,7 @@ public class PersonController extends Controller {
         return ResponseEntity.ok(json);
     }
 
-    private Location validateAndRetrieveLocation(Location location) {
-        if (location == null) {
-            return null;
-        }
-        return service.validateAndGetEntity(location.getId(), locationRepository, "Location");
-    }
 
-
-    private String ensureUniquePassportId(String passportId) {
-        String uniquePassportId = passportId;
-        int counter = 1;
-
-        while (personRepository.existsByPassportID(uniquePassportId)) {
-            uniquePassportId = passportId + "_" + counter;
-            counter++;
-        }
-
-        return uniquePassportId;
-    }
 
 
 }

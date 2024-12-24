@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 import org.zir.dragonieze.dragon.*;
 import org.zir.dragonieze.dragon.repo.*;
@@ -82,6 +83,7 @@ public class DragonService {
         return validatedHeads;
     }
 
+    @Transactional
     public DragonDTO addDragon(OpenAmUserPrincipal user, Dragon dragon) throws JsonProcessingException {
         Coordinates coordinates = baseService.validateAndGetEntity(dragon.getCoordinates().getId(), coordinatesRepository, "Coordinates");
         dragon.setCoordinates(coordinates);
