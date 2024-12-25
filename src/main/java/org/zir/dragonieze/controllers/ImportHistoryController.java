@@ -5,16 +5,16 @@ import jakarta.validation.constraints.Min;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpMethod;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.client.RestTemplate;
 import org.zir.dragonieze.imphist.*;
 import org.zir.dragonieze.openam.auth.OpenAmUserPrincipal;
 import org.zir.dragonieze.user.Role;
 
-import java.util.List;
 
 @RestController
 @RequestMapping("/dragon/import")
@@ -55,6 +55,25 @@ public class ImportHistoryController {
         history = importHistoryRepository.findAll(specification,
                 PageRequest.of(offset, limit, sort.getSortValue()));
         return history;
+    }
+
+
+
+    @GetMapping("/download/{id}")
+    public ResponseEntity<byte[]> downloadFile(@PathVariable Long id) {
+        ImportHistory importHistory = importHistoryRepository.findById(id).get();
+
+        String fileUrl = importHistory.getFileUrl();
+
+        RestTemplate restTemplate = new RestTemplate();
+        ResponseEntity<byte[]> response = restTemplate.exchange(
+                fileUrl, HttpMethod.GET, null, byte[].class);
+
+        byte[] fileBytes = response.getBody();
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"file\"")
+                .body(fileBytes);
     }
 
 }

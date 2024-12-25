@@ -39,7 +39,7 @@ services:
       - openam
 
   front:
-    build: https://github.com/zirtoshka/inf-sys-lab1-front.git
+    image: frontik:latest
     hostname: "openam.example.org"
     networks:
       - web-network
@@ -48,6 +48,21 @@ services:
     depends_on:
       - spring
 
+  minio:
+    image: minio/minio:latest
+    container_name: "miniooooooo"
+    command: server --console-address ":9001" /data/
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: user
+      MINIO_ROOT_PASSWORD: password
+    volumes:
+      - minio-storage:/data
+    networks:
+      - web-network
+
 networks:
   web-network:
     driver: bridge
@@ -55,3 +70,4 @@ networks:
 volumes:
   openam-data: { }
   postgres-data: { }
+  minio-storage: {}

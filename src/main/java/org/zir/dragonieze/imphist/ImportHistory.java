@@ -19,5 +19,7 @@ public class ImportHistory {
     private int importedCount; //can be null
     @Enumerated(EnumType.STRING)
     private StatusImport status;
+    @Column(columnDefinition = "TEXT")
+    private String fileUrl;
 
 }

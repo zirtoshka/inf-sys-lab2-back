@@ -16,16 +16,15 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.transaction.annotation.Isolation;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import org.zir.dragonieze.dragon.*;
-import org.zir.dragonieze.dragon.repo.LocationRepository;
 import org.zir.dragonieze.dragon.repo.PersonRepository;
 import org.zir.dragonieze.dto.PersonDTO;
 import org.zir.dragonieze.imphist.LogImportHistory;
 import org.zir.dragonieze.log.Auditable;
+import org.zir.dragonieze.minio.MinioService;
 import org.zir.dragonieze.openam.auth.OpenAmUserPrincipal;
 import org.zir.dragonieze.services.BaseService;
 import org.zir.dragonieze.services.PersonService;
@@ -33,7 +32,9 @@ import org.zir.dragonieze.sort.PersonSort;
 import org.zir.dragonieze.sort.specifications.PersonSpecifications;
 import org.springframework.retry.annotation.Retryable;
 
+import java.io.ByteArrayInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -43,17 +44,16 @@ import java.util.Map;
 @RequestMapping("/dragon/person")
 public class PersonController extends Controller {
     private final PersonRepository personRepository;
-    private final LocationRepository locationRepository;
     private final PersonSpecifications personSpecifications;
     private final PersonService personService;
+    private final MinioService minioService;
 
-
-    public PersonController(BaseService service, PersonRepository personRepository, LocationRepository locationRepository, SimpMessagingTemplate messagingTemplate, PersonSpecifications personSpecifications, PersonService personService) {
+    public PersonController(BaseService service, PersonRepository personRepository, SimpMessagingTemplate messagingTemplate, PersonSpecifications personSpecifications, PersonService personService, MinioService minioService) {
         super(service, messagingTemplate);
         this.personRepository = personRepository;
-        this.locationRepository = locationRepository;
         this.personSpecifications = personSpecifications;
         this.personService = personService;
+        this.minioService = minioService;
     }
 
     @Retryable(
@@ -84,7 +84,7 @@ public class PersonController extends Controller {
     @Retryable(
             value = {SQLException.class, org.springframework.dao.ConcurrencyFailureException.class, org.springframework.transaction.TransactionSystemException.class},
             maxAttempts = 3,
-            backoff = @Backoff(delay = 500, maxDelay = 5000, multiplier = 2.0, random = true)
+            backoff = @Backoff(delay = 1000, maxDelay = 50000, multiplier = 2.0, random = true)
     )
     @LogImportHistory
     @Transactional(isolation = Isolation.SERIALIZABLE)
@@ -92,21 +92,42 @@ public class PersonController extends Controller {
     public ResponseEntity<Map<String, Object>> importPersons(
             @AuthenticationPrincipal OpenAmUserPrincipal user,
             @RequestParam("file") MultipartFile file
-    ) {
+    ) throws IOException {
+
+        if (file.isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of(
+                    "message", "File is empty",
+                    "importedCount", 0
+            ));
+        }
+        byte[] fileContent = file.getBytes();
+        InputStream uploadStream = new ByteArrayInputStream(fileContent);
+        InputStream parseStream = new ByteArrayInputStream(fileContent);
+
+        String bucketName = "buckets";
+        String fileName = file.getOriginalFilename();
+        System.out.println(fileName + " its filename");
+
+        String fileUrl = "";
         try {
-            if (file.isEmpty()) {
-                return ResponseEntity.badRequest().body(Map.of(
-                        "message", "File is empty",
-                        "importedCount", 0
-                ));
-            }
+            fileUrl = minioService.uploadFile(
+                    bucketName, fileName, uploadStream, file.getSize(), file.getContentType()
+            );
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
+                    "message", "Failed to upload file: " + e.getMessage(),
+                    "importedCount", 0,
+                    "fileUrl", fileUrl
+            ));
+        }
+
+        try {
             ObjectMapper yamlMapper = new ObjectMapper(new YAMLFactory());
-            List<Person> persons = yamlMapper.readValue(file.getInputStream(), new TypeReference<List<Person>>() {
+            List<Person> persons = yamlMapper.readValue(parseStream, new TypeReference<List<Person>>() {
             });
             List<Person> savedPersons = new ArrayList<>();
             int savedCount = 0;
             for (Person person : persons) {
-                System.out.println("Person: " + person.getName());
                 person = personService.setLocationForPerson(person);
 
                 String uniquePassportId = personService.ensureUniquePassportId(person.getPassportID());
@@ -124,12 +145,14 @@ public class PersonController extends Controller {
 
             return ResponseEntity.ok(Map.of(
                     "message", "Successfully imported persons",
-                    "importedCount", savedCount
+                    "importedCount", savedCount,
+                    "fileUrl", fileUrl
             ));
         } catch (IOException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
                     "message", "Failed to process file: " + e.getMessage(),
-                    "importedCount", 0
+                    "importedCount", 0,
+                    "fileUrl", fileUrl
             ));
         }
     }
@@ -236,8 +259,6 @@ public class PersonController extends Controller {
         String json = service.convertToJson(new PersonDTO(updatePerson));
         return ResponseEntity.ok(json);
     }
-
-
 
 
 }

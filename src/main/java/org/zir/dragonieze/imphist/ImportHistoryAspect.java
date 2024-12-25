@@ -41,6 +41,7 @@ public class ImportHistoryAspect {
                 Object body = responseEntity.getBody();
                 if (body instanceof Map<?, ?> map && map.containsKey("importedCount")) {
                     history.setImportedCount((Integer) map.get("importedCount"));
+                    history.setFileUrl((String) map.get("fileUrl"));
                 }
             }
         } catch (Exception ex) {

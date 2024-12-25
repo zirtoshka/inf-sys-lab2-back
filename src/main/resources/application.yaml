@@ -12,6 +12,11 @@ spring:
         format_sql: true
     database: postgresql
     database-platform: org.hibernate.dialect.PostgreSQLDialect
+  datasource:
+    hikari:
+      maximum-pool-size: 50
+      idle-timeout: 60000
+      connection-timeout: 30000
 
 logging:
   level:
