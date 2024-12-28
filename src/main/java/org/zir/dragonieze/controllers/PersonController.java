@@ -24,7 +24,6 @@ import org.zir.dragonieze.dragon.repo.PersonRepository;
 import org.zir.dragonieze.dto.PersonDTO;
 import org.zir.dragonieze.imphist.LogImportHistory;
 import org.zir.dragonieze.log.Auditable;
-import org.zir.dragonieze.minio.MinioService;
 import org.zir.dragonieze.openam.auth.OpenAmUserPrincipal;
 import org.zir.dragonieze.services.BaseService;
 import org.zir.dragonieze.services.PersonService;
@@ -46,14 +45,12 @@ public class PersonController extends Controller {
     private final PersonRepository personRepository;
     private final PersonSpecifications personSpecifications;
     private final PersonService personService;
-    private final MinioService minioService;
 
-    public PersonController(BaseService service, PersonRepository personRepository, SimpMessagingTemplate messagingTemplate, PersonSpecifications personSpecifications, PersonService personService, MinioService minioService) {
+    public PersonController(BaseService service, PersonRepository personRepository, SimpMessagingTemplate messagingTemplate, PersonSpecifications personSpecifications, PersonService personService) {
         super(service, messagingTemplate);
         this.personRepository = personRepository;
         this.personSpecifications = personSpecifications;
         this.personService = personService;
-        this.minioService = minioService;
     }
 
     @Retryable(
@@ -92,68 +89,32 @@ public class PersonController extends Controller {
     public ResponseEntity<Map<String, Object>> importPersons(
             @AuthenticationPrincipal OpenAmUserPrincipal user,
             @RequestParam("file") MultipartFile file
-    ) throws IOException {
-
+    ) {
         if (file.isEmpty()) {
             return ResponseEntity.badRequest().body(Map.of(
                     "message", "File is empty",
                     "importedCount", 0
             ));
         }
-        byte[] fileContent = file.getBytes();
-        InputStream uploadStream = new ByteArrayInputStream(fileContent);
-        InputStream parseStream = new ByteArrayInputStream(fileContent);
-
-        String bucketName = "buckets";
-        String fileName = file.getOriginalFilename();
-        System.out.println(fileName + " its filename");
-
-        String fileUrl = "";
         try {
-            fileUrl = minioService.uploadFile(
-                    bucketName, fileName, uploadStream, file.getSize(), file.getContentType()
-            );
-        } catch (IOException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
-                    "message", "Failed to upload file: " + e.getMessage(),
-                    "importedCount", 0,
-                    "fileUrl", fileUrl
-            ));
-        }
+            List<Person> persons = personService.parsePersonsFromFile(file);
 
-        try {
-            ObjectMapper yamlMapper = new ObjectMapper(new YAMLFactory());
-            List<Person> persons = yamlMapper.readValue(parseStream, new TypeReference<List<Person>>() {
-            });
-            List<Person> savedPersons = new ArrayList<>();
-            int savedCount = 0;
-            for (Person person : persons) {
-                person = personService.setLocationForPerson(person);
-
-                String uniquePassportId = personService.ensureUniquePassportId(person.getPassportID());
-                person.setPassportID(uniquePassportId);
-
-                Person savedPerson = service.saveEntityWithUser(user, person, Person::setUser, personRepository);
-                savedPersons.add(savedPerson);
-                savedCount++;
-            }
+            persons = persons.stream()
+                    .map(personService::preparePerson)
+                    .toList();
+            List<Person> savedPersons = personService.savePersons(persons, user);
 
             messagingTemplate.convertAndSend("/topic/persons", Map.of(
                     "action", "IMPORT",
                     "data", savedPersons.stream().map(PersonDTO::new).toList()
             ));
-
             return ResponseEntity.ok(Map.of(
                     "message", "Successfully imported persons",
-                    "importedCount", savedCount,
-                    "fileUrl", fileUrl
-            ));
+                    "importedCount", savedPersons.size()));
         } catch (IOException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
                     "message", "Failed to process file: " + e.getMessage(),
-                    "importedCount", 0,
-                    "fileUrl", fileUrl
-            ));
+                    "importedCount", 0));
         }
     }
 

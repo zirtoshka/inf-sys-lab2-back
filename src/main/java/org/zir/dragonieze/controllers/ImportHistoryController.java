@@ -63,7 +63,8 @@ public class ImportHistoryController {
     public ResponseEntity<byte[]> downloadFile(@PathVariable Long id) {
         ImportHistory importHistory = importHistoryRepository.findById(id).get();
 
-        String fileUrl = importHistory.getFileUrl();
+        String fileUrl = "";
+//                importHistory.getFileUrl(); //todo
 
         RestTemplate restTemplate = new RestTemplate();
         ResponseEntity<byte[]> response = restTemplate.exchange(
