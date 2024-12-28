@@ -51,7 +51,8 @@ public class SecurityConfig {
         configuration.setAllowedOrigins(List.of("http://openam.example.org:8083"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "DELETE"));
         configuration.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type",
-                "Accept-API-Version", "Accept"));
+                "Accept-API-Version", "Accept", "Access-Control-Expose-Headers", "Content-Disposition"));
+
         configuration.setAllowCredentials(true);
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

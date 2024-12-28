@@ -2,18 +2,25 @@ package org.zir.dragonieze.controllers;
 
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
+import org.springframework.core.io.InputStreamResource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
-import org.springframework.http.HttpHeaders;
-import org.springframework.http.HttpMethod;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.client.RestTemplate;
 import org.zir.dragonieze.imphist.*;
+import org.zir.dragonieze.minio.MinioService;
 import org.zir.dragonieze.openam.auth.OpenAmUserPrincipal;
 import org.zir.dragonieze.user.Role;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.Serializable;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 
 @RestController
@@ -21,10 +28,12 @@ import org.zir.dragonieze.user.Role;
 public class ImportHistoryController {
     private final ImportHistoryRepository importHistoryRepository;
     private final ImportHistorySpecification importHistorySpecification;
+    private final MinioService minioService;
 
-    public ImportHistoryController(ImportHistoryRepository importHistoryRepository, ImportHistorySpecification importHistorySpecification) {
+    public ImportHistoryController(ImportHistoryRepository importHistoryRepository, ImportHistorySpecification importHistorySpecification, MinioService minioService) {
         this.importHistoryRepository = importHistoryRepository;
         this.importHistorySpecification = importHistorySpecification;
+        this.minioService = minioService;
     }
 
 
@@ -58,23 +67,40 @@ public class ImportHistoryController {
     }
 
 
-
     @GetMapping("/download/{id}")
+    @Transactional
     public ResponseEntity<byte[]> downloadFile(@PathVariable Long id) {
+        if (importHistoryRepository.findById(id).isEmpty()) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(null);
+        }
         ImportHistory importHistory = importHistoryRepository.findById(id).get();
 
-        String fileUrl = "";
-//                importHistory.getFileUrl(); //todo
+        String uniqueName = importHistory.getUniqueName();
+        try {
+            InputStream inputStream = minioService.downloadFile(uniqueName);
 
-        RestTemplate restTemplate = new RestTemplate();
-        ResponseEntity<byte[]> response = restTemplate.exchange(
-                fileUrl, HttpMethod.GET, null, byte[].class);
+            byte[] fileContent = inputStream.readAllBytes();
 
-        byte[] fileBytes = response.getBody();
+            String contentType ;
+            try {
+                contentType = Files.probeContentType(Path.of(uniqueName));
+            } catch (IOException e) {
+                return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+            }
+            if (contentType == null || contentType.isEmpty()) {
+                contentType = "application/octet-stream";
+            }
+            return ResponseEntity.ok()
+                    .contentType(MediaType.parseMediaType(contentType))
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + importHistory.getFileName() + "\"")
+                    .body(fileContent);
 
-        return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"file\"")
-                .body(fileBytes);
+        } catch (IOException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(null);
+        }
+
     }
 
 }

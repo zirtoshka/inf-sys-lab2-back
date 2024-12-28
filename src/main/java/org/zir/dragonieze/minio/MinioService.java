@@ -1,5 +1,6 @@
 package org.zir.dragonieze.minio;
 
+import io.minio.GetObjectArgs;
 import io.minio.GetPresignedObjectUrlArgs;
 import io.minio.MinioClient;
 import io.minio.PutObjectArgs;
@@ -44,19 +45,21 @@ public class MinioService {
                             .build()
             );
         } catch (Exception e) {
-            e.printStackTrace();
             throw new IOException("Failed to upload file to MinIO", e);
         }
     }
 
-    public String getFileUrl(String fileName) throws Exception {
-        return minioClient.getPresignedObjectUrl(
-                GetPresignedObjectUrlArgs.builder()
-                        .bucket(BUCKET_NAME)
-                        .object(fileName)
-                        .method(Method.GET)
-                        .expiry(7, TimeUnit.DAYS)
-                        .build()
-        );
+    public InputStream downloadFile(String fileName) throws IOException {
+        try {
+            return minioClient.getObject(
+                    GetObjectArgs.builder()
+                            .bucket(BUCKET_NAME)
+                            .object(fileName)
+                            .build()
+            );
+        } catch (Exception e) {
+            throw new IOException("Failed to download file", e);
+        }
     }
+
 }
