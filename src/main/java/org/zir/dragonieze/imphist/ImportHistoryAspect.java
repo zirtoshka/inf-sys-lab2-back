@@ -7,8 +7,11 @@ import org.aspectj.lang.annotation.Aspect;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 import org.zir.dragonieze.minio.MinioService;
+import org.zir.dragonieze.minio.UploadMinieException;
 import org.zir.dragonieze.openam.auth.OpenAmUserPrincipal;
 
 import java.io.ByteArrayInputStream;
@@ -32,37 +35,27 @@ public class ImportHistoryAspect {
         this.minioService = minioService;
     }
 
-    //todo add transactions
     @Around("@annotation(LogImportHistory)")
+    @Transactional(propagation = Propagation.MANDATORY, rollbackFor = Exception.class)
     public Object logImportHistory(ProceedingJoinPoint joinPoint) throws Throwable {
         ImportHistory history = new ImportHistory();
         history.setStatus(StatusImport.IN_PROGRESS);
 
-        OpenAmUserPrincipal user = null;
         try {
-            user = (OpenAmUserPrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-            if (user != null) {
-                history.setUserId(user.getUser().getId());
-            }
-
-            Object[] args = joinPoint.getArgs();
-            MultipartFile file = (MultipartFile) args[1];
-            System.out.println("Original file name: " + file.getOriginalFilename());
-            history.setFileName(file.getOriginalFilename());
-            String uniqueFileName = UUID.randomUUID().toString();
-            history.setUniqueName(uniqueFileName);
-
-            uploadFileToMinio(file, uniqueFileName);
+            setUserAndFileDetails(joinPoint, history);
 
             importHistoryService.saveImportHistory(history);
             Object result = joinPoint.proceed();
-            history.setStatus(StatusImport.SUCCESS);
-            if (result instanceof ResponseEntity<?> responseEntity) {
-                Object body = responseEntity.getBody();
-                if (body instanceof Map<?, ?> map && map.containsKey("importedCount")) {
-                    history.setImportedCount((Integer) map.get("importedCount"));
-                }
+
+            updateHistoryAfterSuccess(result, history);
+            if (history.getStatus() == StatusImport.IN_PROGRESS) {
+                history.setStatus(StatusImport.SUCCESS);
             }
+        } catch (UploadMinieException e) {
+            history.setStatus(StatusImport.FAILED_UPLOAD_FILE);
+            handleDownloadException(e, joinPoint, history);
+            throw e;
+
         } catch (Exception ex) {
             history.setStatus(StatusImport.FAILED);
             history.setImportedCount(0);
@@ -76,12 +69,50 @@ public class ImportHistoryAspect {
     }
 
 
-    private void uploadFileToMinio(MultipartFile file, String fileName) throws IOException {
+    @Transactional(propagation = Propagation.MANDATORY)
+    protected void uploadFileToMinio(MultipartFile file, String fileName) throws IOException, UploadMinieException {
         byte[] fileContent = file.getBytes();
         InputStream uploadStream = new ByteArrayInputStream(fileContent);
-         minioService.uploadFile(
+        minioService.uploadFile(
                 BUCKET_NAME, fileName, uploadStream, file.getSize(), file.getContentType()
         );
     }
+
+    @Transactional(propagation = Propagation.MANDATORY)
+    protected void setUserAndFileDetails(ProceedingJoinPoint joinPoint, ImportHistory history) throws Exception, UploadMinieException {
+        OpenAmUserPrincipal user = (OpenAmUserPrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (user != null) {
+            history.setUserId(user.getUser().getId());
+        }
+
+        Object[] args = joinPoint.getArgs();
+        MultipartFile file = (MultipartFile) args[1];
+        history.setFileName(file.getOriginalFilename());
+
+        String uniqueFileName = UUID.randomUUID().toString();
+        history.setUniqueName(uniqueFileName);
+        try {
+            uploadFileToMinio(file, uniqueFileName);
+        } catch (UploadMinieException e) {
+            history.setStatus(StatusImport.FAILED_UPLOAD_FILE);
+            throw e;
+        }
+    }
+    @Transactional(propagation = Propagation.MANDATORY)
+    protected void updateHistoryAfterSuccess(Object result, ImportHistory history) {
+        if (result instanceof ResponseEntity<?> responseEntity) {
+            Object body = responseEntity.getBody();
+            if (body instanceof Map<?, ?> map && map.containsKey("importedCount")) {
+                history.setImportedCount((Integer) map.get("importedCount"));
+            }
+        }
+    }
+
+    @Transactional(propagation = Propagation.MANDATORY)
+    protected void handleDownloadException(UploadMinieException e, ProceedingJoinPoint joinPoint, ImportHistory history) throws Throwable {
+        Object result = joinPoint.proceed();
+        updateHistoryAfterSuccess(result, history);
+    }
+
 
 }

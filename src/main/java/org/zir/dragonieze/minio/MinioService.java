@@ -1,18 +1,11 @@
 package org.zir.dragonieze.minio;
 
 import io.minio.GetObjectArgs;
-import io.minio.GetPresignedObjectUrlArgs;
 import io.minio.MinioClient;
 import io.minio.PutObjectArgs;
-import io.minio.errors.*;
-import io.minio.http.Method;
 import org.springframework.stereotype.Service;
 
-import java.io.IOException;
 import java.io.InputStream;
-import java.security.InvalidKeyException;
-import java.security.NoSuchAlgorithmException;
-import java.util.concurrent.TimeUnit;
 
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,11 +23,8 @@ public class MinioService {
         this.minioClient = minioClient;
     }
 
-    @Transactional(propagation = Propagation.NOT_SUPPORTED)
-    public void uploadFile(String bucketName, String fileName, InputStream inputStream, long size, String contentType) throws IOException {
-        System.out.println(fileName + " filename" + bucketName + " size" + size);
-        System.out.println(inputStream);
-        System.out.println(contentType);
+    @Transactional(propagation = Propagation.MANDATORY)
+    public void uploadFile(String bucketName, String fileName, InputStream inputStream, long size, String contentType) throws UploadMinieException {
         try {
             minioClient.putObject(
                     PutObjectArgs.builder()
@@ -45,11 +35,11 @@ public class MinioService {
                             .build()
             );
         } catch (Exception e) {
-            throw new IOException("Failed to upload file to MinIO", e);
+            throw new UploadMinieException("Failed to upload file to MinIO", e);
         }
     }
 
-    public InputStream downloadFile(String fileName) throws IOException {
+    public InputStream downloadFile(String fileName) throws DownloadMinioException {
         try {
             return minioClient.getObject(
                     GetObjectArgs.builder()
@@ -58,7 +48,7 @@ public class MinioService {
                             .build()
             );
         } catch (Exception e) {
-            throw new IOException("Failed to download file", e);
+            throw new DownloadMinioException(e);
         }
     }
 

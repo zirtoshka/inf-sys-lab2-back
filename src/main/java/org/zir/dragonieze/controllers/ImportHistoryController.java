@@ -2,7 +2,6 @@ package org.zir.dragonieze.controllers;
 
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
-import org.springframework.core.io.InputStreamResource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
@@ -10,15 +9,14 @@ import org.springframework.http.*;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.client.RestTemplate;
 import org.zir.dragonieze.imphist.*;
+import org.zir.dragonieze.minio.DownloadMinioException;
 import org.zir.dragonieze.minio.MinioService;
 import org.zir.dragonieze.openam.auth.OpenAmUserPrincipal;
 import org.zir.dragonieze.user.Role;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.Serializable;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
@@ -82,7 +80,7 @@ public class ImportHistoryController {
 
             byte[] fileContent = inputStream.readAllBytes();
 
-            String contentType ;
+            String contentType;
             try {
                 contentType = Files.probeContentType(Path.of(uniqueName));
             } catch (IOException e) {
@@ -99,6 +97,9 @@ public class ImportHistoryController {
         } catch (IOException e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(null);
+        } catch (DownloadMinioException e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("minio is not available to download file((".getBytes());
         }
 
     }
