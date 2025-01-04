@@ -24,6 +24,7 @@ import org.zir.dragonieze.dragon.repo.PersonRepository;
 import org.zir.dragonieze.dto.PersonDTO;
 import org.zir.dragonieze.imphist.LogImportHistory;
 import org.zir.dragonieze.log.Auditable;
+import org.zir.dragonieze.minio.UploadMinieException;
 import org.zir.dragonieze.openam.auth.OpenAmUserPrincipal;
 import org.zir.dragonieze.services.BaseService;
 import org.zir.dragonieze.services.PersonService;
@@ -31,11 +32,8 @@ import org.zir.dragonieze.sort.PersonSort;
 import org.zir.dragonieze.sort.specifications.PersonSpecifications;
 import org.springframework.retry.annotation.Retryable;
 
-import java.io.ByteArrayInputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
@@ -83,8 +81,9 @@ public class PersonController extends Controller {
             maxAttempts = 3,
             backoff = @Backoff(delay = 1000, maxDelay = 50000, multiplier = 2.0, random = true)
     )
+
     @LogImportHistory
-    @Transactional(isolation = Isolation.SERIALIZABLE)
+    @Transactional(isolation = Isolation.SERIALIZABLE, rollbackFor = UploadMinieException.class)
     @PostMapping("/import")
     public ResponseEntity<Map<String, Object>> importPersons(
             @AuthenticationPrincipal OpenAmUserPrincipal user,
@@ -104,7 +103,8 @@ public class PersonController extends Controller {
                     .toList();
             List<Person> savedPersons = personService.savePersons(persons, user);
 
-            messagingTemplate.convertAndSend("/topic/persons", Map.of(
+
+            sendNotificationAfterCommit("/topic/persons", Map.of(
                     "action", "IMPORT",
                     "data", savedPersons.stream().map(PersonDTO::new).toList()
             ));

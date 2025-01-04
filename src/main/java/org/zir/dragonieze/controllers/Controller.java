@@ -6,6 +6,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.support.TransactionSynchronizationAdapter;
+import org.springframework.transaction.support.TransactionSynchronizationManager;
 import org.springframework.validation.FieldError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
@@ -21,6 +23,7 @@ import java.util.Map;
 public class Controller {
     protected final BaseService service;
     protected final SimpMessagingTemplate messagingTemplate;
+
 
     @Autowired
     public Controller(BaseService service, SimpMessagingTemplate messagingTemplate) {
@@ -54,6 +57,15 @@ public class Controller {
             return spec.and(genspec.hasCanEdit(canEdit));
         }
         return spec;
+    }
+
+    public void sendNotificationAfterCommit(String topic, Object payload) {
+        TransactionSynchronizationManager.registerSynchronization(new TransactionSynchronizationAdapter() {
+            @Override
+            public void afterCommit() {
+                messagingTemplate.convertAndSend(topic, payload);
+            }
+        });
     }
 
 
