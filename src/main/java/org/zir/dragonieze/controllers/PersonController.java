@@ -73,6 +73,7 @@ public class PersonController extends Controller {
         );
         String json = service.convertToJson(new PersonDTO(savedPerson));
         return ResponseEntity.ok(json);
+
     }
 
 
@@ -83,15 +84,15 @@ public class PersonController extends Controller {
     )
 
     @LogImportHistory
-    @Transactional(isolation = Isolation.SERIALIZABLE, rollbackFor = UploadMinieException.class)
+    @Transactional(isolation = Isolation.SERIALIZABLE, rollbackFor = {UploadMinieException.class, SQLException.class, org.springframework.dao.ConcurrencyFailureException.class, org.springframework.transaction.TransactionSystemException.class})
     @PostMapping("/import")
     public ResponseEntity<Map<String, Object>> importPersons(
             @AuthenticationPrincipal OpenAmUserPrincipal user,
             @RequestParam("file") MultipartFile file
-    ) {
+    ) throws SQLException {
         if (file.isEmpty()) {
             return ResponseEntity.badRequest().body(Map.of(
-                    "message", "File is empty",
+                    "message", "Failed File is empty",
                     "importedCount", 0
             ));
         }

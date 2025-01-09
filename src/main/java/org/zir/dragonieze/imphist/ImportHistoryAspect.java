@@ -49,7 +49,10 @@ public class ImportHistoryAspect {
 
             updateHistoryAfterSuccess(result, history);
             if (history.getStatus() == StatusImport.IN_PROGRESS) {
-                history.setStatus(StatusImport.SUCCESS);
+                if (history.getImportedCount()==-1){
+                    history.setStatus(StatusImport.FAILED);
+            }else{
+                history.setStatus(StatusImport.SUCCESS);}
             }
         } catch (UploadMinieException e) {
             history.setStatus(StatusImport.FAILED_UPLOAD_FILE);
@@ -99,13 +102,23 @@ public class ImportHistoryAspect {
         }
     }
     @Transactional(propagation = Propagation.MANDATORY)
-    protected void updateHistoryAfterSuccess(Object result, ImportHistory history) {
+    protected void updateHistoryAfterSuccess(Object result, ImportHistory history) throws Exception{
         if (result instanceof ResponseEntity<?> responseEntity) {
             Object body = responseEntity.getBody();
             if (body instanceof Map<?, ?> map && map.containsKey("importedCount")) {
                 history.setImportedCount((Integer) map.get("importedCount"));
             }
         }
+
+        if (result instanceof ResponseEntity<?> responseEntity) {
+            Object body = responseEntity.getBody();
+            if (body instanceof Map<?, ?> map && map.containsKey("message")) {
+                if (map.get("message").toString().contains("Failed")) {
+                    throw new Exception("Failed");
+                }
+            }
+        }
+
     }
 
     @Transactional(propagation = Propagation.MANDATORY)
