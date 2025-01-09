@@ -25,6 +25,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.zir.dragonieze.dragon.*;
 import org.zir.dragonieze.dragon.repo.PersonRepository;
 import org.zir.dragonieze.dto.PersonDTO;
+import org.zir.dragonieze.imphist.ImportHistoryService;
 import org.zir.dragonieze.imphist.LogImportHistory;
 import org.zir.dragonieze.log.Auditable;
 import org.zir.dragonieze.minio.UploadMinieException;
@@ -46,12 +47,14 @@ public class PersonController extends Controller {
     private final PersonRepository personRepository;
     private final PersonSpecifications personSpecifications;
     private final PersonService personService;
+    private final ImportHistoryService importHistoryService;
 
-    public PersonController(BaseService service, PersonRepository personRepository, SimpMessagingTemplate messagingTemplate, PersonSpecifications personSpecifications, PersonService personService) {
+    public PersonController(BaseService service, PersonRepository personRepository, SimpMessagingTemplate messagingTemplate, PersonSpecifications personSpecifications, PersonService personService, ImportHistoryService importHistoryService) {
         super(service, messagingTemplate);
         this.personRepository = personRepository;
         this.personSpecifications = personSpecifications;
         this.personService = personService;
+        this.importHistoryService = importHistoryService;
     }
 
     @Retryable(
@@ -86,46 +89,34 @@ public class PersonController extends Controller {
 //            backoff = @Backoff(delay = 10, maxDelay = 100, multiplier = 2.0, random = true)
 //    )
 
-    @LogImportHistory
-//    @Transactional(isolation = Isolation.SERIALIZABLE, rollbackFor = {UploadMinieException.class, SQLException.class, org.springframework.dao.ConcurrencyFailureException.class, org.springframework.transaction.TransactionSystemException.class})
+    //    @Transactional(isolation = Isolation.SERIALIZABLE, rollbackFor = {UploadMinieException.class, SQLException.class, org.springframework.dao.ConcurrencyFailureException.class, org.springframework.transaction.TransactionSystemException.class})
     @PostMapping("/import")
     public ResponseEntity<Map<String, Object>> importPersons(
             @AuthenticationPrincipal OpenAmUserPrincipal user,
             @RequestParam("file") MultipartFile file
     ) {
+        return importHistoryService.importPerson(user, file);
 
-        if (file.isEmpty()) {
-            return ResponseEntity.badRequest().body(Map.of(
-                    "message", "Failed File is empty",
-                    "importedCount", 0
-            ));
-        }
-        try {
-            List<Person> persons = personService.parsePersonsFromFile(file);
-
-            persons = persons.stream()
-                    .map(personService::preparePerson)
-                    .toList();
-            List<Person> savedPersons = personService.savePersons(persons, user);
-
-
-            sendNotificationAfterCommit("/topic/persons", Map.of(
-                    "action", "IMPORT",
-                    "data", savedPersons.stream().map(PersonDTO::new).toList()
-            ));
-            return ResponseEntity.ok(Map.of(
-                    "message", "Successfully imported persons",
-                    "importedCount", savedPersons.size()));
-        } catch (IOException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
-                    "message", "Failed to process file: " + e.getMessage(),
-                    "importedCount", 0));
-        } catch (CannotCreateTransactionException | DataAccessException ex) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("ss", ""));
-        } catch (Exception e) {
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("message", "Failed to process file: " + e.getMessage()));
-        }
+//        try {
+//
+//
+//            sendNotificationAfterCommit("/topic/persons", Map.of(
+//                    "action", "IMPORT",
+//                    "data", savedPersons.stream().map(PersonDTO::new).toList()
+//            ));
+//            return ResponseEntity.ok(Map.of(
+//                    "message", "Successfully imported persons",
+//                    "importedCount", savedPersons.size()));
+//        } catch (IOException e) {
+//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
+//                    "message", "Failed to process file: " + e.getMessage(),
+//                    "importedCount", 0));
+//        } catch (CannotCreateTransactionException | DataAccessException ex) {
+//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("ss", ""));
+//        } catch (Exception e) {
+//            e.printStackTrace();
+//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("message", "Failed to process file: " + e.getMessage()));
+//        }
     }
 
     @Retryable(
