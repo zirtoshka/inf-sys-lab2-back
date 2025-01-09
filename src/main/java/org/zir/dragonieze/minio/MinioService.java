@@ -23,7 +23,7 @@ public class MinioService {
         this.minioClient = minioClient;
     }
 
-    @Transactional(propagation = Propagation.MANDATORY)
+//    @Transactional(propagation = Propagation.MANDATORY)
     public void uploadFile(String bucketName, String fileName, InputStream inputStream, long size, String contentType) throws UploadMinieException {
         try {
             minioClient.putObject(

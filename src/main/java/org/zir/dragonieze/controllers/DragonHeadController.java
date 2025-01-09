@@ -41,7 +41,7 @@ public class DragonHeadController extends Controller {
     public ResponseEntity<String> addHead(
             @AuthenticationPrincipal OpenAmUserPrincipal user,
             @Valid @RequestBody DragonHead head
-    ) throws JsonProcessingException {
+    ) throws Exception {
         DragonHead savedHead = service.saveEntityWithUser(user, head, DragonHead::setUser, headRepository);
         messagingTemplate.convertAndSend("/topic/heads", Map.of(
                 "action", "ADD",

@@ -54,7 +54,7 @@ public class DragonController extends Controller {
     public ResponseEntity<String> addDragon(
             @AuthenticationPrincipal OpenAmUserPrincipal user,
             @Valid @RequestBody Dragon dragon
-    ) throws JsonProcessingException {
+    ) throws Exception {
         DragonDTO dragonDTO = dragonService.addDragon(user, dragon);
         messagingTemplate.convertAndSend("/topic/dragons", Map.of(
                 "action", "ADD",

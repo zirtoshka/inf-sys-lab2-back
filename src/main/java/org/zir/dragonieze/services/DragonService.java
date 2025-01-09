@@ -84,7 +84,7 @@ public class DragonService {
     }
 
     @Transactional
-    public DragonDTO addDragon(OpenAmUserPrincipal user, Dragon dragon) throws JsonProcessingException {
+    public DragonDTO addDragon(OpenAmUserPrincipal user, Dragon dragon) throws Exception {
         Coordinates coordinates = baseService.validateAndGetEntity(dragon.getCoordinates().getId(), coordinatesRepository, "Coordinates");
         dragon.setCoordinates(coordinates);
 
@@ -112,7 +112,13 @@ public class DragonService {
         validatedHeads.forEach(head -> head.setDragon(savedDragon));
 
         List<DragonHead> headsCopy = new ArrayList<>(validatedHeads);
-        headsCopy.forEach(head -> baseService.saveEntityWithUser(user, head, DragonHead::setUser, headRepository));
+        headsCopy.forEach(head -> {
+            try {
+                baseService.saveEntityWithUser(user, head, DragonHead::setUser, headRepository);
+            } catch (Exception e) {
+                throw new RuntimeException(e);
+            }
+        });
 
         return new DragonDTO(savedDragon);
     }

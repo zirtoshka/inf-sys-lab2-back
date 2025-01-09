@@ -7,6 +7,7 @@ import org.aspectj.lang.annotation.Aspect;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.CannotCreateTransactionException;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -36,7 +37,7 @@ public class ImportHistoryAspect {
     }
 
     @Around("@annotation(LogImportHistory)")
-    @Transactional(propagation = Propagation.MANDATORY, rollbackFor = Exception.class)
+//    @Transactional(propagation = Propagation.MANDATORY, rollbackFor = Exception.class)
     public Object logImportHistory(ProceedingJoinPoint joinPoint) throws Throwable {
         ImportHistory history = new ImportHistory();
         history.setStatus(StatusImport.IN_PROGRESS);
@@ -62,17 +63,21 @@ public class ImportHistoryAspect {
         } catch (Exception ex) {
             history.setStatus(StatusImport.FAILED);
             history.setImportedCount(0);
-            importHistoryService.saveImportHistory(history);
+//            importHistoryService.saveImportHistory(history);
             throw ex;
         } finally {
-            importHistoryService.saveImportHistory(history);
+            try{
+                importHistoryService.saveImportHistory(history); //todo
+            }catch (CannotCreateTransactionException e){
+                System.out.println("bebebeebebebebebebebe");
+            }
         }
 
         return null;
     }
 
 
-    @Transactional(propagation = Propagation.MANDATORY)
+//    @Transactional(propagation = Propagation.MANDATORY)
     protected void uploadFileToMinio(MultipartFile file, String fileName) throws IOException, UploadMinieException {
         byte[] fileContent = file.getBytes();
         InputStream uploadStream = new ByteArrayInputStream(fileContent);
@@ -81,7 +86,7 @@ public class ImportHistoryAspect {
         );
     }
 
-    @Transactional(propagation = Propagation.MANDATORY)
+//    @Transactional(propagation = Propagation.MANDATORY)
     protected void setUserAndFileDetails(ProceedingJoinPoint joinPoint, ImportHistory history) throws Exception, UploadMinieException {
         OpenAmUserPrincipal user = (OpenAmUserPrincipal) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         if (user != null) {
@@ -101,7 +106,7 @@ public class ImportHistoryAspect {
             throw e;
         }
     }
-    @Transactional(propagation = Propagation.MANDATORY)
+//    @Transactional(propagation = Propagation.MANDATORY)
     protected void updateHistoryAfterSuccess(Object result, ImportHistory history) throws Exception{
         if (result instanceof ResponseEntity<?> responseEntity) {
             Object body = responseEntity.getBody();
@@ -121,7 +126,7 @@ public class ImportHistoryAspect {
 
     }
 
-    @Transactional(propagation = Propagation.MANDATORY)
+//    @Transactional(propagation = Propagation.MANDATORY)
     protected void handleDownloadException(UploadMinieException e, ProceedingJoinPoint joinPoint, ImportHistory history) throws Throwable {
         Object result = joinPoint.proceed();
         updateHistoryAfterSuccess(result, history);

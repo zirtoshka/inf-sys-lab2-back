@@ -7,6 +7,8 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
+import org.hibernate.engine.jdbc.spi.SqlExceptionHelper;
+import org.springframework.dao.DataAccessException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.domain.Specification;
@@ -15,6 +17,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.retry.annotation.Backoff;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.transaction.CannotCreateTransactionException;
 import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
@@ -61,7 +64,7 @@ public class PersonController extends Controller {
     public ResponseEntity<String> addPerson(
             @AuthenticationPrincipal OpenAmUserPrincipal user,
             @Valid @RequestBody Person person
-    ) throws JsonProcessingException {
+    ) throws Exception {
         person = personService.setLocationForPerson(person);
         String uniquePassportId = personService.ensureUniquePassportId(person.getPassportID());
         person.setPassportID(uniquePassportId);
@@ -77,19 +80,20 @@ public class PersonController extends Controller {
     }
 
 
-    @Retryable(
-            value = {SQLException.class, org.springframework.dao.ConcurrencyFailureException.class, org.springframework.transaction.TransactionSystemException.class},
-            maxAttempts = 3,
-            backoff = @Backoff(delay = 1000, maxDelay = 50000, multiplier = 2.0, random = true)
-    )
+//    @Retryable(
+//            value = {org.springframework.dao.ConcurrencyFailureException.class, org.springframework.transaction.TransactionSystemException.class},
+//            maxAttempts = 1,
+//            backoff = @Backoff(delay = 10, maxDelay = 100, multiplier = 2.0, random = true)
+//    )
 
     @LogImportHistory
-    @Transactional(isolation = Isolation.SERIALIZABLE, rollbackFor = {UploadMinieException.class, SQLException.class, org.springframework.dao.ConcurrencyFailureException.class, org.springframework.transaction.TransactionSystemException.class})
+//    @Transactional(isolation = Isolation.SERIALIZABLE, rollbackFor = {UploadMinieException.class, SQLException.class, org.springframework.dao.ConcurrencyFailureException.class, org.springframework.transaction.TransactionSystemException.class})
     @PostMapping("/import")
     public ResponseEntity<Map<String, Object>> importPersons(
             @AuthenticationPrincipal OpenAmUserPrincipal user,
             @RequestParam("file") MultipartFile file
-    ) throws SQLException {
+    ) {
+
         if (file.isEmpty()) {
             return ResponseEntity.badRequest().body(Map.of(
                     "message", "Failed File is empty",
@@ -116,6 +120,11 @@ public class PersonController extends Controller {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
                     "message", "Failed to process file: " + e.getMessage(),
                     "importedCount", 0));
+        } catch (CannotCreateTransactionException | DataAccessException ex) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("ss", ""));
+        } catch (Exception e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("message", "Failed to process file: " + e.getMessage()));
         }
     }
 

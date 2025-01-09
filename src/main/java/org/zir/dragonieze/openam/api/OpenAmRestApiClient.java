@@ -1,6 +1,7 @@
 package org.zir.dragonieze.openam.api;
 
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
@@ -49,6 +50,7 @@ public class OpenAmRestApiClient {
         );
     }
 
+    @Cacheable(value = "users", key = "#authCookie")
     public User getUserByCookie(String authCookie) {
         lock.readLock().lock();
         try {

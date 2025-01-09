@@ -47,7 +47,7 @@ public class CoordinatesController extends Controller {
     public ResponseEntity<String> addCoordinates(
             @AuthenticationPrincipal OpenAmUserPrincipal user,
             @Valid @RequestBody Coordinates coordinates
-    ) throws JsonProcessingException {
+    ) throws Exception {
         Coordinates savedCoordinates = service.saveEntityWithUser(user, coordinates, Coordinates::setUser, coordinatesRepository);
         String json = service.convertToJson(new CoordinatesDTO(savedCoordinates));
         messagingTemplate.convertAndSend("/topic/coordinates", Map.of(

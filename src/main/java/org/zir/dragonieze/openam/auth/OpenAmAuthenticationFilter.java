@@ -73,10 +73,22 @@ public class OpenAmAuthenticationFilter extends AbstractAuthenticationProcessing
             if (user == null) {
                 throw new BadCredentialsException("invalid session!");
             }
+            Optional<User> foundUser;
 
-            Optional<User> foundUser = userRepository.findByUsername(user.getUsername());
+            try {
+                foundUser = userRepository.findByUsername(user.getUsername());
+            } catch (Exception dbException) {
+                System.out.println( "База данных недоступна: AAAAAAAA"+ dbException.getMessage());
+                foundUser = Optional.empty();
+            }
+
             if (foundUser.isEmpty()) {
-                userRepository.save(user);
+                try {
+                    userRepository.save(user);
+                } catch (Exception saveException) {
+                    System.out.println( "Не удалось сохранить пользователя в базу данных: AAAAAAA"+ saveException.getMessage());
+                    user = openAmApi.getUserByCookie(authCookie);
+                }
             } else {
                 user = foundUser.get();
             }
@@ -104,7 +116,6 @@ public class OpenAmAuthenticationFilter extends AbstractAuthenticationProcessing
                     roles
             );
             token.setDetails(authenticationDetailsSource.buildDetails(request));
-
             return this.getAuthenticationManager().authenticate(token);
         } catch (HttpClientErrorException.Unauthorized e) {
             throw new InvalidCookieException("iPlanetDirectoryPro cookie has expired");

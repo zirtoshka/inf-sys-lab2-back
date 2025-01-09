@@ -17,6 +17,7 @@ import org.zir.dragonieze.user.Role;
 import org.zir.dragonieze.user.User;
 import org.zir.dragonieze.user.UserRepository;
 
+import java.sql.SQLException;
 import java.util.Optional;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
@@ -86,8 +87,8 @@ public class BaseService {
         }
     }
 
-    @Transactional(propagation = Propagation.MANDATORY)
-    public <T> T saveEntityWithUser(OpenAmUserPrincipal user, T entity, BiConsumer<T, User> setUserFunction, JpaRepository<T, ?> repository) {
+//    @Transactional(propagation = Propagation.MANDATORY)
+    public <T> T saveEntityWithUser(OpenAmUserPrincipal user, T entity, BiConsumer<T, User> setUserFunction, JpaRepository<T, ?> repository) throws Exception {
         setUserFunction.accept(entity, user.getUser());
         return repository.save(entity);
     }

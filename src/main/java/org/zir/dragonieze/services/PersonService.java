@@ -45,7 +45,7 @@ public class PersonService {
     }
 
 
-    @Transactional(propagation = Propagation.MANDATORY)
+//    @Transactional(propagation = Propagation.MANDATORY)
     public String ensureUniquePassportId(String passportId) {
         String uniquePassportId = passportId;
 
@@ -56,7 +56,7 @@ public class PersonService {
         return uniquePassportId;
     }
 
-    @Transactional(propagation = Propagation.MANDATORY)
+//    @Transactional(propagation = Propagation.MANDATORY)
     public Location validateAndRetrieveLocation(Location location) {
         if (location == null) {
             return null;
@@ -65,14 +65,14 @@ public class PersonService {
     }
 
 
-    @Transactional(propagation = Propagation.MANDATORY)
+//    @Transactional(propagation = Propagation.MANDATORY)
     public List<Person> parsePersonsFromFile(MultipartFile file) throws IOException {
         ObjectMapper yamlMapper = new ObjectMapper(new YAMLFactory());
         return yamlMapper.readValue(file.getInputStream(), new TypeReference<List<Person>>() {
         });
     }
 
-    @Transactional(propagation = Propagation.MANDATORY)
+//    @Transactional(propagation = Propagation.MANDATORY)
     public Person preparePerson(Person person) {
         person = setLocationForPerson(person);
         String uniquePassportId = ensureUniquePassportId(person.getPassportID());
@@ -80,8 +80,8 @@ public class PersonService {
         return person;
     }
 
-    @Transactional(propagation = Propagation.MANDATORY)
-    public List<Person> savePersons(List<Person> persons, OpenAmUserPrincipal user) {
+//    @Transactional(propagation = Propagation.MANDATORY)
+    public List<Person> savePersons(List<Person> persons, OpenAmUserPrincipal user) throws Exception{
         List<Person> savedPersons = new ArrayList<>();
         for (Person person : persons) {
             Person savedPerson = baseService.saveEntityWithUser(user, person, Person::setUser, personRepository);

@@ -42,7 +42,7 @@ public class LocationController extends Controller {
     public ResponseEntity<String> addLocation(
             @AuthenticationPrincipal OpenAmUserPrincipal user,
             @Valid @RequestBody Location location
-    ) throws JsonProcessingException {
+    ) throws Exception {
         Location savedLocation = service.saveEntityWithUser(user, location, Location::setUser, locationRepository);
         messagingTemplate.convertAndSend("/topic/locations", Map.of(
                 "action", "ADD",
@@ -108,7 +108,6 @@ public class LocationController extends Controller {
             @AuthenticationPrincipal OpenAmUserPrincipal user,
             @Valid @RequestBody Location location
     ) throws JsonProcessingException {
-        System.out.println(location.getCanEdit()+" "+location.getId());
         Location updateLocation = service.updateEntityWithUser(
                 user,
                 location,

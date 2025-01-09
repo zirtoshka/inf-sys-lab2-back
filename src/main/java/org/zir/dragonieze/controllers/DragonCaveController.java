@@ -43,7 +43,7 @@ public class DragonCaveController extends Controller {
     public ResponseEntity<String> addCave(
             @AuthenticationPrincipal OpenAmUserPrincipal user,
             @Valid @RequestBody DragonCave cave
-    ) throws JsonProcessingException {
+    ) throws Exception {
         DragonCave savedCave = service.saveEntityWithUser(user, cave, DragonCave::setUser, caveRepository);
         messagingTemplate.convertAndSend("/topic/caves", Map.of(
                 "action", "ADD",
@@ -106,7 +106,6 @@ public class DragonCaveController extends Controller {
             @AuthenticationPrincipal OpenAmUserPrincipal user,
             @Valid @RequestBody DragonCave cave
     ) throws JsonProcessingException {
-        System.out.println(cave.getCanEdit());
         DragonCave updatedCave = service.updateEntityWithUser(
                 user,
                 cave,
