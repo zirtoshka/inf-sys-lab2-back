@@ -78,27 +78,6 @@ public class PersonController extends Controller {
             @RequestParam("file") MultipartFile file
     ) {
         return importHistoryService.importPerson(user, file);
-
-//        try {
-//
-//
-//            sendNotificationAfterCommit("/topic/persons", Map.of(
-//                    "action", "IMPORT",
-//                    "data", savedPersons.stream().map(PersonDTO::new).toList()
-//            ));
-//            return ResponseEntity.ok(Map.of(
-//                    "message", "Successfully imported persons",
-//                    "importedCount", savedPersons.size()));
-//        } catch (IOException e) {
-//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
-//                    "message", "Failed to process file: " + e.getMessage(),
-//                    "importedCount", 0));
-//        } catch (CannotCreateTransactionException | DataAccessException ex) {
-//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("ss", ""));
-//        } catch (Exception e) {
-//            e.printStackTrace();
-//            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of("message", "Failed to process file: " + e.getMessage()));
-//        }
     }
 
     @Retryable(
