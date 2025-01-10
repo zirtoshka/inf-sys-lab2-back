@@ -1,8 +1,10 @@
 package org.zir.dragonieze.imphist;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.CannotCreateTransactionException;
+import org.springframework.transaction.annotation.Isolation;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.jta.JtaTransactionManager;
@@ -29,22 +31,21 @@ public class ImportHistoryService {
     private final ImportHistoryRepository importHistoryRepository;
     private final PersonService personService;
     private final MinioService minioService;
-//    private final JtaTransactionManager jtaTransactionManager;
 
 
     public ImportHistoryService(ImportHistoryRepository importHistoryRepository, PersonService personService, MinioService minioService) {
         this.importHistoryRepository = importHistoryRepository;
         this.personService = personService;
         this.minioService = minioService;
-//        this.jtaTransactionManager = jtaTransactionManager;
     }
 
     public ResponseEntity<Map<String, Object>> importPerson(OpenAmUserPrincipal user,
                                                             MultipartFile file) {
-
+        String res = "";
         if (file.isEmpty()) {
+            res += "Failed File is empty";
             return ResponseEntity.badRequest().body(Map.of(
-                    "message", "Failed File is empty",
+                    "message", res,
                     "importedCount", 0
             ));
         }
@@ -58,24 +59,25 @@ public class ImportHistoryService {
         try {
             uploadFileToMinio(file, uniqueFileName);
         } catch (IOException e) {
-            e.printStackTrace();
+            res += "file is so strange; ";
             statusImport = StatusImport.FAILED;
         } catch (UploadMinieException e) {
-            e.printStackTrace();
+            res += "uploading file to minio failed; ";
             statusImport = StatusImport.FAILED_UPLOAD_FILE;
         }
 
 
         try {
-            savedPersons = savePersonDB(file, user);
+            savedPersons = personService.savePersonDB(file, user);
             if (statusImport != StatusImport.FAILED_UPLOAD_FILE) {
                 statusImport = StatusImport.SUCCESS;
             }
+            res+="Successfully imported persons";
             count = savedPersons.size();
         } catch (Exception e) {
+            System.out.println("Error importing persons");
             e.printStackTrace();
-            //rollback for savePersonDB()
-            count = 0;
+            res += "importing person failed; ";
             statusImport = StatusImport.FAILED;
         }
 
@@ -83,17 +85,22 @@ public class ImportHistoryService {
         try {
             saveImportHistory(count, statusImport, filename, user.getUser().getId(), uniqueFileName);
         } catch (CannotCreateTransactionException e) {
-            e.printStackTrace();
+            res += "failed to create transaction; ";
             //bd отказало
         }
 
+        if (statusImport == StatusImport.SUCCESS || statusImport == StatusImport.FAILED_UPLOAD_FILE) {
+            return ResponseEntity.ok(Map.of(
+                    "message", res,
+                    "importedCount", count));
+        }
 
-        return ResponseEntity.ok(Map.of(
-                "message", "Successfully imported persons",
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(Map.of(
+                "message", res,
                 "importedCount", count));
     }
 
-    protected void uploadFileToMinio(MultipartFile file, String fileName) throws IOException, UploadMinieException {
+    protected void uploadFileToMinio(MultipartFile file, String fileName) throws UploadMinieException, IOException {
         byte[] fileContent = file.getBytes();
         InputStream uploadStream = new ByteArrayInputStream(fileContent);
         minioService.uploadFile(
@@ -101,17 +108,11 @@ public class ImportHistoryService {
         );
     }
 
-    protected List<Person> savePersonDB(MultipartFile file, OpenAmUserPrincipal user) throws Exception {
-        List<Person> persons = personService.parsePersonsFromFile(file);
-
-        persons = persons.stream()
-                .map(personService::preparePerson)
-                .toList();
-        List<Person> savedPersons = personService.savePersons(persons, user);
-        return savedPersons;
-    }
 
 
+
+    //todo add retry
+    @Transactional(isolation = Isolation.SERIALIZABLE, propagation = Propagation.REQUIRES_NEW)
     protected void saveImportHistory(int count,
                                      StatusImport statusImport,
                                      String filename,

@@ -26,7 +26,6 @@ public class MinioService {
 //    @Transactional(propagation = Propagation.MANDATORY)
     public void uploadFile(String bucketName, String fileName, InputStream inputStream, long size, String contentType) throws UploadMinieException {
         try {
-            System.out.println("jopa");
             minioClient.putObject(
                     PutObjectArgs.builder()
                             .bucket(bucketName)
