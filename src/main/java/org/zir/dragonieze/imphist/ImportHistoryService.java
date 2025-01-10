@@ -2,6 +2,7 @@ package org.zir.dragonieze.imphist;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.CannotCreateTransactionException;
 import org.springframework.transaction.annotation.Isolation;
@@ -12,6 +13,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.multipart.MultipartFile;
 import org.zir.dragonieze.dragon.Person;
 import org.zir.dragonieze.dragon.repo.PersonRepository;
+import org.zir.dragonieze.dto.PersonDTO;
 import org.zir.dragonieze.minio.MinioService;
 import org.zir.dragonieze.minio.UploadMinieException;
 import org.zir.dragonieze.openam.auth.OpenAmUserPrincipal;
@@ -31,12 +33,15 @@ public class ImportHistoryService {
     private final ImportHistoryRepository importHistoryRepository;
     private final PersonService personService;
     private final MinioService minioService;
+    protected final SimpMessagingTemplate messagingTemplate;
 
 
-    public ImportHistoryService(ImportHistoryRepository importHistoryRepository, PersonService personService, MinioService minioService) {
+
+    public ImportHistoryService(ImportHistoryRepository importHistoryRepository, PersonService personService, MinioService minioService, SimpMessagingTemplate messagingTemplate) {
         this.importHistoryRepository = importHistoryRepository;
         this.personService = personService;
         this.minioService = minioService;
+        this.messagingTemplate = messagingTemplate;
     }
 
     public ResponseEntity<Map<String, Object>> importPerson(OpenAmUserPrincipal user,
@@ -54,7 +59,7 @@ public class ImportHistoryService {
         String filename = file.getOriginalFilename();
         StatusImport statusImport = StatusImport.IN_PROGRESS;
         int count = 0;
-        List<Person> savedPersons;
+        List<Person> savedPersons = List.of();
 
         try {
             uploadFileToMinio(file, uniqueFileName);
@@ -76,7 +81,6 @@ public class ImportHistoryService {
             count = savedPersons.size();
         } catch (Exception e) {
             System.out.println("Error importing persons");
-            e.printStackTrace();
             res += "importing person failed; ";
             statusImport = StatusImport.FAILED;
         }
@@ -90,6 +94,13 @@ public class ImportHistoryService {
         }
 
         if (statusImport == StatusImport.SUCCESS || statusImport == StatusImport.FAILED_UPLOAD_FILE) {
+            if(!savedPersons.isEmpty()){
+                messagingTemplate.convertAndSend("/topic/persons",
+                        Map.of(
+                                "action", "IMPORT",
+                                "data", savedPersons.stream().map(PersonDTO::new).toList()
+                        ));
+            }
             return ResponseEntity.ok(Map.of(
                     "message", res,
                     "importedCount", count));

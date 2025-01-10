@@ -78,7 +78,7 @@ public class OpenAmAuthenticationFilter extends AbstractAuthenticationProcessing
             try {
                 foundUser = userRepository.findByUsername(user.getUsername());
             } catch (Exception dbException) {
-                System.out.println( "База данных недоступна: AAAAAAAA"+ dbException.getMessage());
+                System.out.println( "База данных недоступна:"+ dbException.getMessage());
                 foundUser = Optional.empty();
             }
 
@@ -86,7 +86,7 @@ public class OpenAmAuthenticationFilter extends AbstractAuthenticationProcessing
                 try {
                     userRepository.save(user);
                 } catch (Exception saveException) {
-                    System.out.println( "Не удалось сохранить пользователя в базу данных: AAAAAAA"+ saveException.getMessage());
+                    System.out.println( "Не удалось сохранить пользователя в базу данных: "+ saveException.getMessage());
                     user = openAmApi.getUserByCookie(authCookie);
                 }
             } else {

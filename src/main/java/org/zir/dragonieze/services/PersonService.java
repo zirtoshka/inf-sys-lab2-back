@@ -60,7 +60,7 @@ public class PersonService {
         return uniquePassportId;
     }
 
-    //    @Transactional(propagation = Propagation.MANDATORY)
+    @Transactional(propagation = Propagation.MANDATORY)
     public Location validateAndRetrieveLocation(Location location) {
         if (location == null) {
             return null;
